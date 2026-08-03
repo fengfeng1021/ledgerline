@@ -2,8 +2,19 @@
 
 ## What it is
 
-Six financial models, each given a real interface. A hub that explains why they exist.
-Static site, no backend, no accounts, no telemetry. Every calculation runs in the visitor's browser.
+A financial file that lives in the visitor's own browser, plus six models that
+read it. Static site, no backend, no accounts, no telemetry.
+
+The file is the product. The tools are what read it. That order matters: six
+calculators with no shared state is a set of one-time visits, and nobody returns
+to a calculator. A file accumulates, and the things that accumulate (net worth
+history, decisions, an action list derived from real drift) are the only reason
+to come back.
+
+**Localisation.** Traditional Chinese is the primary locale, English the
+fallback, chosen from `navigator.languages` with a script check so a Simplified
+tag is not served Traditional text. Currency is guessed from region and then
+owned by the file.
 
 ## Who it is for
 

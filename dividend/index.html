@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh-TW" class="no-js" data-title-key="dividend.title" data-desc-key="dividend.desc">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dividend: what lands, and when | Ledgerline</title>
-<meta name="description" content="Yield is quoted yearly. Cash arrives quarterly and unevenly. This lays the calendar out, after tax, and shows when it covers your spending.">
+<title>配息：什麼時候會入帳，入多少 | 帳線</title>
+<meta name="description" content="殖利率是用年算的，帳單卻是每個月來。這裡把配息攤成月曆，扣完稅，並算出什麼時候能蓋過你的生活費。">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Dividend | Ledgerline">
 <meta property="og:description" content="A dividend calendar, growth on cost, and the month your income covers your bills.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/ui.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
@@ -19,17 +19,17 @@
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
-<a class="skip-link" href="#stage">Skip to results</a>
+<a class="skip-link" href="#stage" data-i18n="skip.results">跳到結果</a>
 <header class="nav"></header>
 
 <div class="shell">
 <div class="workbench">
 
-  <aside class="rail" aria-label="Holdings and settings">
+  <aside class="rail"><div id="profileLink"></div>
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Holdings</h2>
+        <h2 class="group__title" data-i18n="dividend.gHoldings">持有部位</h2>
         <span class="group__aside" id="posValue">-</span>
       </div>
       <div class="holding-head" aria-hidden="true">
@@ -47,13 +47,11 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Over time</h2></div>
+      <div class="group__head"><h2 class="group__title" data-i18n="dividend.gOverTime">長期</h2></div>
 
       <div class="field">
-        <label class="field__label" for="growth">
-          Dividend growth, yearly
-          <span class="field__hint" id="growthNote">steady raiser</span>
-        </label>
+        <label class="field__label" for="growth"><span data-i18n="dividend.growth">配息每年成長</span>
+          <span class="field__hint" id="growthNote"></span></label>
         <div class="range-row">
           <input class="range" id="growth" type="range" min="0" max="15" step="0.1" value="5">
           <output class="range-val" for="growth" id="growthOut">5.0%</output>
@@ -61,7 +59,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="horizon">Years ahead</label>
+        <label class="field__label" for="horizon"><span data-i18n="dividend.horizon">往後看幾年</span></label>
         <div class="range-row">
           <input class="range" id="horizon" type="range" min="5" max="40" step="1" value="20">
           <output class="range-val" for="horizon" id="horizonOut">20</output>
@@ -69,12 +67,12 @@
       </div>
 
       <div class="switch-row">
-        <label class="field__label" for="reinvest" style="margin:0">Reinvest the dividends</label>
+        <label class="field__label" for="reinvest"><span data-i18n="dividend.reinvest">配息再投入</span></label>
         <button class="switch" id="reinvest" role="switch" aria-checked="true" aria-label="Reinvest dividends"></button>
       </div>
 
       <div class="field" style="margin-top:var(--s4)">
-        <label class="field__label" for="addMonthly">Also add, monthly</label>
+        <label class="field__label" for="addMonthly"><span data-i18n="dividend.addMonthly">另外每月再投入</span></label>
         <div class="input-wrap" data-num="addMonthly">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="addMonthly" type="number" inputmode="numeric" value="0" min="0" step="5000">
@@ -87,10 +85,10 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Reality</h2></div>
+      <div class="group__head"><h2 class="group__title" data-i18n="dividend.gReality">現實面</h2></div>
 
       <div class="field">
-        <label class="field__label" for="tax">Tax withheld on dividends</label>
+        <label class="field__label" for="tax"><span data-i18n="dividend.tax">股利扣繳稅率</span></label>
         <div class="range-row">
           <input class="range" id="tax" type="range" min="0" max="45" step="1" value="20">
           <output class="range-val" for="tax" id="taxOut">20%</output>
@@ -98,7 +96,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="spend">Monthly spending to cover</label>
+        <label class="field__label" for="spend"><span data-i18n="dividend.spend">每月要蓋掉的生活費</span></label>
         <div class="input-wrap" data-num="spend">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="spend" type="number" inputmode="numeric" value="60000" min="0" step="5000">
@@ -111,8 +109,8 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Currency</h2></div>
-      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+      <div class="group__head"><h2 class="group__title" data-i18n="common.currency">幣別</h2></div>
+      <div class="seg" id="curSeg" role="group" data-i18n-attr="aria-label:common.currency">
         <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
         <button type="button" data-cur="USD" aria-pressed="false">USD</button>
         <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
@@ -121,11 +119,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn--ghost" id="btnShare" type="button">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
-        Copy link
-      </button>
-      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+      <button class="btn btn--ghost" id="btnShare" type="button"><span data-i18n="common.copyLink">複製連結</span></button>
+      <button class="btn btn--quiet" id="btnReset" type="button" data-i18n="common.reset">重設</button>
     </div>
   </aside>
 
@@ -133,29 +128,29 @@
 
     <div class="stage__head">
       <div>
-        <h1 class="stage__title">Dividend</h1>
-        <p class="stage__sub">An annual yield tells you nothing about the month your bills are due. This is the calendar, after tax.</p>
+        <h1 class="stage__title" data-i18n="dividend.h1">配息</h1>
+        <p class="stage__sub" data-i18n="dividend.sub">年化殖利率完全沒告訴你帳單到期那個月有沒有錢。這是扣完稅的月曆。</p>
       </div>
     </div>
 
     <div class="metrics" id="metrics">
       <div class="metric" id="mYear">
-        <div class="metric__label">Dividends this year, after tax</div>
+        <div class="metric__label" data-i18n="dividend.mYear">今年配息，稅後</div>
         <div class="metric__value metric__value--accent num" id="vYear">-</div>
         <div class="metric__foot" id="fYear">&nbsp;</div>
       </div>
       <div class="metric" id="mMonth">
-        <div class="metric__label">Best month against worst</div>
+        <div class="metric__label" data-i18n="dividend.mMonth">最多的月份對上最少的</div>
         <div class="metric__value num" id="vMonth">-</div>
         <div class="metric__foot" id="fMonth">&nbsp;</div>
       </div>
       <div class="metric" id="mCover">
-        <div class="metric__label">Covers your spending in</div>
+        <div class="metric__label" data-i18n="dividend.mCover">蓋過生活費還要</div>
         <div class="metric__value num" id="vCover">-</div>
         <div class="metric__foot" id="fCover">&nbsp;</div>
       </div>
       <div class="metric" id="mYoc">
-        <div class="metric__label">Yield on today's cost, later</div>
+        <div class="metric__label" data-i18n="dividend.mYoc">以今天成本計的殖利率</div>
         <div class="metric__value metric__value--pos num" id="vYoc">-</div>
         <div class="metric__foot" id="fYoc">&nbsp;</div>
       </div>
@@ -163,7 +158,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" aria-labelledby="calTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="calTitle">This year, month by month</h2>
+        <h2 class="panel__title" id="calTitle" data-i18n="dividend.calTitle">今年，逐月</h2>
         <span class="group__aside" id="calNote">after tax</span>
       </div>
       <div class="panel__body panel__body--flush">
@@ -173,7 +168,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="growTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="growTitle">Income against the bills</h2>
+        <h2 class="panel__title" id="growTitle" data-i18n="dividend.growTitle">配息收入對上生活費</h2>
         <div class="legend" id="legend"></div>
       </div>
       <div class="panel__body">
@@ -184,7 +179,7 @@
 
     <div class="split split--even" data-reveal>
       <section class="panel" aria-labelledby="riTitle">
-        <div class="panel__head"><h2 class="panel__title" id="riTitle">Reinvesting, or spending it</h2></div>
+        <div class="panel__head"><h2 class="panel__title" id="riTitle" data-i18n="dividend.riTitle">再投入，還是拿來花</h2></div>
         <div class="panel__body">
           <p class="fee-claim" id="riClaim">-</p>
           <p class="fee-sub" id="riSub">&nbsp;</p>
@@ -194,7 +189,7 @@
 
       <section class="panel" aria-labelledby="conTitle">
         <div class="panel__head">
-          <h2 class="panel__title" id="conTitle">Concentration</h2>
+          <h2 class="panel__title" id="conTitle" data-i18n="dividend.conTitle">集中度</h2>
           <span class="group__aside">where the income comes from</span>
         </div>
         <div class="panel__body">
@@ -204,11 +199,7 @@
       </section>
     </div>
 
-    <p class="disclosure" style="margin-top:var(--s5)">
-      Dividends are not contractual. A yield of 6% today can be 0% next quarter, and the highest yields on any
-      screen are usually the ones about to be cut. Growth is applied evenly, which no real payer does.
-      Reinvestment assumes the share price rises with the dividend, so the yield stays constant.
-    </p>
+    <p class="disclosure" style="margin-top:var(--s5)" data-i18n="dividend.disclosure"></p>
   </main>
 
 </div>

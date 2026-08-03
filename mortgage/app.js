@@ -4,6 +4,8 @@ import {
   money, moneyShort, pct, num, years as fmtYears, setCurrency, curSymbol, CURRENCIES,
   createStore, bindNumber, bindRange, debounce, copyText, downloadCSV, mountShell, clamp,
 } from '../assets/js/core.js';
+import { t } from '../assets/js/i18n.js';
+import { mountProfileBridge } from '../assets/js/bridge.js';
 import { lineChart } from '../assets/js/chart.js';
 import { countTo, flash, enterWorkbench, revealOnScroll } from '../assets/js/motion.js';
 
@@ -127,32 +129,32 @@ function render(s) {
   const pay = s.grace > 0 ? base.gracePayment : base.payment;
   countTo(els.vPay, pay + s.extra, money);
   els.fPay.textContent = s.grace > 0
-    ? `interest only for ${fmtYears(s.grace)}, then ${money(base.basePayment + s.extra)}`
+    ? t('mortgage.fPayGrace', { years: fmtYears(s.grace), then: money(base.basePayment + s.extra) })
     : s.method === 'annuity'
-      ? (s.extra > 0 ? `${money(base.payment)} required plus ${money(s.extra)} extra` : 'level for the whole term')
-      : `falls to ${money(base.levelPrincipal + (base.yearly.at(-2)?.balance || 0) * (s.rate / 1200) + s.extra)} by the end`;
+      ? (s.extra > 0 ? t('mortgage.fPayExtra', { base: money(base.payment), extra: money(s.extra) }) : t('mortgage.fPayLevel'))
+      : t('mortgage.fPayFalling', { end: money(base.levelPrincipal + (base.yearly.at(-2)?.balance || 0) * (s.rate / 1200) + s.extra) });
 
   countTo(els.vInterest, fast.totalInterest, money);
-  els.fInterest.textContent = `${pct((fast.totalInterest / Math.max(1, s.principal)) * 100, 0)} of what you borrowed, on top of it`;
+  els.fInterest.textContent = t('mortgage.fInterest', { pct: pct((fast.totalInterest / Math.max(1, s.principal)) * 100, 0) });
 
   countTo(els.vSaved, saved, money);
   els.fSaved.textContent = saved > 0
-    ? `${monthsSaved} payments you never make`
-    : 'add an extra payment on the left to see the effect';
+    ? t('mortgage.fSaved', { n: monthsSaved })
+    : t('mortgage.fSavedNone');
 
   countTo(els.vFree, fast.months / 12, (v) => fmtYears(v));
   els.fFree.textContent = monthsSaved > 0
-    ? `${fmtYears(monthsSaved / 12)} earlier than the contract`
-    : `the full ${fmtYears(s.term)} term`;
+    ? t('mortgage.fFree', { years: fmtYears(monthsSaved / 12) })
+    : t('mortgage.fFreeFull', { years: fmtYears(s.term) });
 
   // --- balance chart
   const xs = base.yearly.map((y) => y.year);
   const series = [
-    { key: 'base', label: 'Contract schedule', values: base.yearly.map((y) => y.balance), color: '--slate-400', dashed: s.extra > 0 || s.lump > 0 },
+    { key: 'base', label: t('mortgage.legendContract'), values: base.yearly.map((y) => y.balance), color: '--slate-400', dashed: s.extra > 0 || s.lump > 0 },
   ];
   if (s.extra > 0 || s.lump > 0) {
     series.unshift({
-      key: 'fast', label: 'With your extra payments',
+      key: 'fast', label: t('mortgage.legendFast'),
       values: fast.yearly.map((y) => y.balance), color: '--accent', area: true, areaOpacity: 0.1,
     });
   } else {
@@ -164,13 +166,13 @@ function render(s) {
 
   lineChart($('#chart'), {
     series,
-    x: { values: xs, format: (v) => (v === 0 ? 'start' : 'yr ' + v), readoutLabel: 'Year' },
+    x: { values: xs, format: (v) => (v === 0 ? t('common.start') : t('common.yr', { n: v })), readoutLabel: t('common.year') },
     y: { format: moneyShort, min: 0 },
-    markers: monthsSaved > 0 ? [{ x: Math.ceil(fast.months / 12), label: 'paid off' }] : [],
+    markers: monthsSaved > 0 ? [{ x: Math.ceil(fast.months / 12), label: t('mortgage.markerPaid') }] : [],
     height: 360,
     readout: $('#readout'),
-    readout_empty: 'Hover to read the outstanding balance at any year',
-    table: { caption: 'Outstanding balance by year', xLabel: 'Year' },
+    readout_empty: t('common.hoverChart'),
+    table: { caption: t('mortgage.balTitle'), xLabel: t('common.year') },
   });
   $('#legend').innerHTML = series
     .map((x) => `<span class="legend__item"><span class="legend__swatch" style="background:var(${x.color})"></span>${x.label}</span>`)
@@ -185,17 +187,15 @@ function render(s) {
 
   const gap = Math.abs(saved - invested);
   els.beClaim.innerHTML = s.extra <= 0 && s.lump <= 0
-    ? `Set an extra payment and this becomes a real comparison.`
-    : overpayWins
-      ? `Overpaying wins by <span class="num c-pos">${money(gap)}</span>.`
-      : `Investing wins by <span class="num c-pos">${money(gap)}</span>.`;
+    ? t('mortgage.beNone')
+    : overpayWins ? t('mortgage.beOverpay', { gap: money(gap) }) : t('mortgage.beInvest', { gap: money(gap) });
   els.beSub.textContent = s.extra <= 0 && s.lump <= 0
-    ? `The same money can kill interest at ${pct(s.rate, 2)} or earn ${pct(s.alt, 1)} in a market. Only one of those is guaranteed.`
-    : `Your loan costs ${pct(s.rate, 2)}. The investment is assumed to return ${pct(s.alt, 1)} with no bad years, which is the generous case. Overpaying has no bad years at all.`;
+    ? t('mortgage.beSubNone', { rate: pct(s.rate, 2), alt: pct(s.alt, 1) })
+    : t('mortgage.beSub', { rate: pct(s.rate, 2), alt: pct(s.alt, 1) });
 
   const beBars = [
-    { label: 'Interest never paid', v: saved, color: '--sage-400' },
-    { label: 'Same money invested', v: invested, color: '--slate-400' },
+    { label: t('mortgage.barSaved'), v: saved, color: '--sage-400' },
+    { label: t('mortgage.barInvested'), v: invested, color: '--slate-400' },
   ];
   const mx = Math.max(...beBars.map((b) => b.v), 1);
   els.beBars.innerHTML = beBars.map((b) => `<div class="fee-bar">
@@ -210,12 +210,12 @@ function render(s) {
     const tot = y.interest + y.principal || 1;
     const iPct = (y.interest / tot) * 100;
     return `<div class="ladder__row">
-      <span class="ladder__k">year ${y.year}</span>
+      <span class="ladder__k">${t('mortgage.mixYear', { n: y.year })}</span>
       <span class="ladder__stack">
         <span class="ladder__seg" style="width:${iPct}%;background:var(--clay-400)"></span>
         <span class="ladder__seg" style="width:${100 - iPct}%;background:var(--sage-400)"></span>
       </span>
-      <span class="ladder__v">${pct(iPct, 0)} interest</span>
+      <span class="ladder__v">${t('mortgage.mixInterest', { pct: pct(iPct, 0) })}</span>
     </div>`;
   }).join('');
 
@@ -246,7 +246,8 @@ function syncRail(s) {
   $('#lumpYearOut').textContent = s.lumpYear;
   $('#altOut').textContent = pct(s.alt, 1);
   $('#lumpYear').max = s.term;
-  $('#altNote').textContent = s.alt > s.rate ? `above your ${pct(s.rate, 2)} loan` : `below your ${pct(s.rate, 2)} loan`;
+  $('#altNote').textContent = s.alt > s.rate
+    ? t('mortgage.altAbove', { rate: pct(s.rate, 2) }) : t('mortgage.altBelow', { rate: pct(s.rate, 2) });
   $('#methodSeg').querySelectorAll('[data-method]').forEach((b) =>
     b.setAttribute('aria-pressed', String(b.dataset.method === s.method)));
   document.querySelectorAll('[data-cur-symbol]').forEach((n) => { n.textContent = curSymbol(); });
@@ -287,11 +288,11 @@ function boot() {
     store.set({ cur: b.dataset.cur });
   });
 
-  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), 'Link copied. It carries your loan.'));
+  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), t('common.copied')));
   $('#btnReset').addEventListener('click', () => store.reset());
   $('#btnCsv').addEventListener('click', () => {
     const { base, fast } = last;
-    const rows = [['Year', 'Paid', 'Interest', 'Principal', 'Balance', 'Balance without extra']];
+    const rows = [[t('common.year'), t('mortgage.thPaid'), t('mortgage.thToInterest'), t('mortgage.thToPrincipal'), t('mortgage.thOwed'), t('mortgage.thOwedBase')]];
     fast.yearly.filter((y) => y.year > 0).forEach((y, i) => rows.push([
       y.year, Math.round(y.paid), Math.round(y.interest), Math.round(y.principal),
       Math.round(y.balance), Math.round(base.yearly[i + 1]?.balance ?? 0),
@@ -299,10 +300,13 @@ function boot() {
     downloadCSV('ledgerline-mortgage.csv', rows);
   });
 
+  mountProfileBridge('mortgage', store, { afterAdopt: () => render(store.get()) });
+
   render(store.get());
   enterWorkbench();
   revealOnScroll();
   window.addEventListener('ledger:theme', () => render(store.get()));
+  window.addEventListener('ledger:locale', () => render(store.get()));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

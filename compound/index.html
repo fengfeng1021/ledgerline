@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh-TW" class="no-js" data-title-key="compound.title" data-desc-key="compound.desc">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Compound: what regular investing actually becomes | Ledgerline</title>
-<meta name="description" content="Projects contributions with fees and inflation included, so the answer is the number you can actually spend. Runs entirely in your browser.">
+<title>複利：定期定額最後會變成多少 | 帳線</title>
+<meta name="description" content="把內扣費用與通膨算進去的複利試算，所以最後那個數字是你真的能花的錢。">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Compound | Ledgerline">
 <meta property="og:description" content="Most compound calculators ignore fees and inflation, so their answer is fiction. This one does not.">
@@ -12,7 +12,7 @@
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/ui.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
@@ -20,23 +20,23 @@
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
-<a class="skip-link" href="#stage">Skip to results</a>
+<a class="skip-link" href="#stage" data-i18n="skip.results">跳到結果</a>
 <header class="nav"></header>
 
 <div class="shell">
 <div class="workbench">
 
   <!-- ============ RAIL: assumptions ============ -->
-  <aside class="rail" aria-label="Assumptions">
+  <aside class="rail"><div id="profileLink"></div>
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Money in</h2>
+        <h2 class="group__title" data-i18n="compound.gMoneyIn">投入</h2>
         <span class="group__aside" id="curName">TWD</span>
       </div>
 
       <div class="field">
-        <label class="field__label" for="initial">Starting balance</label>
+        <label class="field__label" for="initial" data-i18n="compound.initial">起始金額</label>
         <div class="input-wrap" data-num="initial">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="initial" type="number" inputmode="numeric" value="100000" min="0" step="10000">
@@ -49,8 +49,8 @@
 
       <div class="field">
         <label class="field__label" for="monthly">
-          Monthly contribution
-          <span class="field__hint" id="annualEq">NT$120,000 / yr</span>
+          <span data-i18n="compound.monthly">每月投入</span>
+          <span class="field__hint" id="annualEq"></span>
         </label>
         <div class="input-wrap" data-num="monthly">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
@@ -64,8 +64,8 @@
 
       <div class="field">
         <label class="field__label" for="raise">
-          Contribution grows yearly
-          <span class="field__hint">you get raises</span>
+          <span data-i18n="compound.raise">投入金額每年成長</span>
+          <span class="field__hint" data-i18n="compound.raiseHint">因為你會加薪</span>
         </label>
         <div class="range-row">
           <input class="range" id="raise" type="range" min="0" max="10" step="0.5" value="2">
@@ -75,10 +75,10 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Market</h2></div>
+      <div class="group__head"><h2 class="group__title" data-i18n="compound.gMarket">市場</h2></div>
 
       <div class="field">
-        <label class="field__label" for="rate">Annual return, before fees</label>
+        <label class="field__label" for="rate" data-i18n="compound.rate">扣費用前的年報酬</label>
         <div class="range-row">
           <input class="range" id="rate" type="range" min="0" max="15" step="0.1" value="7">
           <output class="range-val" for="rate" id="rateOut">7.0%</output>
@@ -86,7 +86,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="years">Years invested</label>
+        <label class="field__label" for="years" data-i18n="compound.years">投資年數</label>
         <div class="range-row">
           <input class="range" id="years" type="range" min="1" max="50" step="1" value="25">
           <output class="range-val" for="years" id="yearsOut">25</output>
@@ -96,14 +96,14 @@
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Drag</h2>
-        <span class="group__aside">what other tools skip</span>
+        <h2 class="group__title" data-i18n="compound.gDrag">損耗</h2>
+        <span class="group__aside" data-i18n="compound.gDragNote">別的工具跳過的部分</span>
       </div>
 
       <div class="field">
         <label class="field__label" for="fee">
-          Annual fee
-          <span class="field__hint" id="feePreset">index fund</span>
+          <span data-i18n="compound.fee">每年內扣費用</span>
+          <span class="field__hint" id="feePreset"></span>
         </label>
         <div class="range-row">
           <input class="range" id="fee" type="range" min="0" max="3" step="0.01" value="0.3">
@@ -112,7 +112,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="inflation">Inflation</label>
+        <label class="field__label" for="inflation" data-i18n="compound.inflation">通膨</label>
         <div class="range-row">
           <input class="range" id="inflation" type="range" min="0" max="8" step="0.1" value="2.2">
           <output class="range-val" for="inflation" id="inflationOut">2.2%</output>
@@ -120,14 +120,14 @@
       </div>
 
       <div class="switch-row">
-        <label class="field__label" for="realToggle" style="margin:0">Show today's money</label>
-        <button class="switch" id="realToggle" role="switch" aria-checked="true" aria-label="Show inflation-adjusted values"></button>
+        <span class="field__label" id="realLbl" style="margin:0" data-i18n="compound.realToggle">用今天的購買力顯示</span>
+        <button class="switch" id="realToggle" role="switch" aria-checked="true" aria-labelledby="realLbl"></button>
       </div>
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Currency</h2></div>
-      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+      <div class="group__head"><h2 class="group__title" data-i18n="common.currency">幣別</h2></div>
+      <div class="seg" id="curSeg" role="group" data-i18n-attr="aria-label:common.currency">
         <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
         <button type="button" data-cur="USD" aria-pressed="false">USD</button>
         <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
@@ -136,11 +136,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn--ghost" id="btnShare" type="button">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
-        Copy link
-      </button>
-      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+      <button class="btn btn--ghost" id="btnShare" type="button"><span data-i18n="common.copyLink">複製連結</span></button>
+      <button class="btn btn--quiet" id="btnReset" type="button" data-i18n="common.reset">重設</button>
     </div>
   </aside>
 
@@ -149,37 +146,37 @@
 
     <div class="stage__head">
       <div>
-        <h1 class="stage__title">Compound</h1>
-        <p class="stage__sub">Fees and inflation are in the model, so the headline number is money you could actually spend.</p>
+        <h1 class="stage__title" data-i18n="compound.h1">複利</h1>
+        <p class="stage__sub" data-i18n="compound.sub">費用與通膨都在模型裡，所以頭條那個數字是你真的花得到的錢。</p>
       </div>
       <div class="scenario-bar">
         <button class="scenario-chip" id="chipA" aria-pressed="true">
-          <span class="scenario-chip__dot" style="background:var(--accent)"></span>Plan A
+          <span class="scenario-chip__dot" style="background:var(--accent)"></span><span data-i18n="compound.planA">A 方案</span>
         </button>
         <button class="scenario-chip" id="chipB" aria-pressed="false">
-          <span class="scenario-chip__dot" style="background:var(--slate-400)"></span><span id="chipBText">Compare</span>
+          <span class="scenario-chip__dot" style="background:var(--plum-400)"></span><span id="chipBText"></span>
         </button>
       </div>
     </div>
 
     <div class="metrics" id="metrics">
       <div class="metric" id="mEnd">
-        <div class="metric__label">Ending balance <span id="endMode">in today's money</span></div>
+        <div class="metric__label"><span data-i18n="compound.mEnd">最後有</span> <span id="endMode"></span></div>
         <div class="metric__value metric__value--accent num" id="vEnd">-</div>
         <div class="metric__foot" id="fEnd">&nbsp;</div>
       </div>
       <div class="metric" id="mIn">
-        <div class="metric__label">You put in</div>
+        <div class="metric__label" data-i18n="compound.mIn">你投入</div>
         <div class="metric__value num" id="vIn">-</div>
         <div class="metric__foot" id="fIn">&nbsp;</div>
       </div>
       <div class="metric" id="mGain">
-        <div class="metric__label">Market did the rest</div>
+        <div class="metric__label" data-i18n="compound.mGain">市場給的</div>
         <div class="metric__value metric__value--pos num" id="vGain">-</div>
         <div class="metric__foot" id="fGain">&nbsp;</div>
       </div>
       <div class="metric" id="mFee">
-        <div class="metric__label">Fees took</div>
+        <div class="metric__label" data-i18n="compound.mFee">費用拿走</div>
         <div class="metric__value metric__value--neg num" id="vFee">-</div>
         <div class="metric__foot" id="fFee">&nbsp;</div>
       </div>
@@ -187,7 +184,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" aria-labelledby="growthTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="growthTitle">Balance over time</h2>
+        <h2 class="panel__title" id="growthTitle" data-i18n="compound.chartTitle">資產隨時間的變化</h2>
         <div class="legend" id="legend"></div>
       </div>
       <div class="panel__body">
@@ -198,7 +195,7 @@
 
     <div class="split" data-reveal>
       <section class="panel" aria-labelledby="feeTitle">
-        <div class="panel__head"><h2 class="panel__title" id="feeTitle">The fee, stated plainly</h2></div>
+        <div class="panel__head"><h2 class="panel__title" id="feeTitle" data-i18n="compound.feeTitle">把費用講清楚</h2></div>
         <div class="panel__body">
           <p class="fee-claim" id="feeClaim">-</p>
           <p class="fee-sub" id="feeSub">&nbsp;</p>
@@ -207,7 +204,7 @@
       </section>
 
       <section class="panel" aria-labelledby="milesTitle">
-        <div class="panel__head"><h2 class="panel__title" id="milesTitle">Milestones</h2></div>
+        <div class="panel__head"><h2 class="panel__title" id="milesTitle" data-i18n="compound.milesTitle">里程碑</h2></div>
         <div class="panel__body panel__body--flush">
           <div id="miles"></div>
         </div>
@@ -216,18 +213,16 @@
 
     <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="tblTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="tblTitle">Year by year</h2>
-        <button class="btn btn--quiet" id="btnCsv" type="button">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>
-          Download CSV
-        </button>
+        <h2 class="panel__title" id="tblTitle" data-i18n="compound.tblTitle">逐年明細</h2>
+        <button class="btn btn--quiet" id="btnCsv" type="button"><span data-i18n="common.csv">下載 CSV</span></button>
       </div>
       <div class="panel__body panel__body--flush">
         <div class="table-scroll" style="max-height:420px">
           <table class="table" id="tbl">
             <thead><tr>
-              <th scope="col">Year</th><th scope="col">Put in</th><th scope="col">Balance</th>
-              <th scope="col">Gain</th><th scope="col">Fees paid</th><th scope="col">Today's money</th>
+              <th scope="col" data-i18n="compound.thYear">年</th><th scope="col" data-i18n="compound.thPaid">累積投入</th>
+              <th scope="col" data-i18n="compound.thBalance">餘額</th><th scope="col" data-i18n="compound.thGain">獲利</th>
+              <th scope="col" data-i18n="compound.thFees">已付費用</th><th scope="col" data-i18n="compound.thReal">今天的錢</th>
             </tr></thead>
             <tbody></tbody>
           </table>
@@ -235,11 +230,7 @@
       </div>
     </section>
 
-    <p class="disclosure" style="margin-top:var(--s5)">
-      One fixed return applied every year is the simplest possible market, and no market behaves that way.
-      Use this to compare decisions against each other, not to predict a balance on a date.
-      Fees are modelled as a percentage of assets charged annually, which is how most funds charge them.
-    </p>
+    <p class="disclosure" style="margin-top:var(--s5)" data-i18n="compound.disclosure"></p>
   </main>
 
 </div>

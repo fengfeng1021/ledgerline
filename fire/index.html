@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh-TW" class="no-js" data-title-key="fire.title" data-desc-key="fire.desc">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FIRE: when can you stop, and does it hold | Ledgerline</title>
-<meta name="description" content="Accumulation and withdrawal in one model, with a volatility simulation so you see the odds instead of a single flattering number.">
+<title>財務自由：什麼時候能停，停了撐不撐得住 | 帳線</title>
+<meta name="description" content="累積期與提領期放在同一個模型裡，用波動模擬讓你看到機率，而不是一個好聽的單一數字。">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="FIRE | Ledgerline">
 <meta property="og:description" content="A single-point retirement number hides sequence-of-returns risk. This one runs the simulation.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/ui.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
@@ -19,22 +19,22 @@
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
-<a class="skip-link" href="#stage">Skip to results</a>
+<a class="skip-link" href="#stage" data-i18n="skip.results">跳到結果</a>
 <header class="nav"></header>
 
 <div class="shell">
 <div class="workbench">
 
-  <aside class="rail" aria-label="Assumptions">
+  <aside class="rail"><div id="profileLink"></div>
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Where you are</h2>
+        <h2 class="group__title" data-i18n="fire.gWhere">你現在的位置</h2>
         <span class="group__aside" id="curName">TWD</span>
       </div>
 
       <div class="field">
-        <label class="field__label" for="nest">Invested today</label>
+        <label class="field__label" for="nest"><span data-i18n="fire.nest">目前已投資</span></label>
         <div class="input-wrap" data-num="nest">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="nest" type="number" inputmode="numeric" value="2000000" min="0" step="100000">
@@ -46,7 +46,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="income">Take-home income, yearly</label>
+        <label class="field__label" for="income"><span data-i18n="fire.income">每年實拿收入</span></label>
         <div class="input-wrap" data-num="income">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="income" type="number" inputmode="numeric" value="1200000" min="0" step="100000">
@@ -58,10 +58,8 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="spend">
-          Spending, yearly
-          <span class="field__hint" id="savingRate">saving 40%</span>
-        </label>
+        <label class="field__label" for="spend"><span data-i18n="fire.spend">每年支出</span>
+          <span class="field__hint" id="savingRate"></span></label>
         <div class="input-wrap" data-num="spend">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="spend" type="number" inputmode="numeric" value="720000" min="0" step="50000">
@@ -74,10 +72,10 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Market</h2></div>
+      <div class="group__head"><h2 class="group__title" data-i18n="fire.gMarket">市場</h2></div>
 
       <div class="field">
-        <label class="field__label" for="rate">Real return, after inflation</label>
+        <label class="field__label" for="rate"><span data-i18n="fire.rate">扣掉通膨後的實質報酬</span></label>
         <div class="range-row">
           <input class="range" id="rate" type="range" min="0" max="10" step="0.1" value="5">
           <output class="range-val" for="rate" id="rateOut">5.0%</output>
@@ -85,10 +83,8 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="vol">
-          Volatility
-          <span class="field__hint" id="volNote">balanced</span>
-        </label>
+        <label class="field__label" for="vol"><span data-i18n="fire.vol">波動度</span>
+          <span class="field__hint" id="volNote"></span></label>
         <div class="range-row">
           <input class="range" id="vol" type="range" min="0" max="25" step="0.5" value="14">
           <output class="range-val" for="vol" id="volOut">14%</output>
@@ -96,7 +92,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="fee">Annual fee</label>
+        <label class="field__label" for="fee"><span data-i18n="fire.fee">每年內扣費用</span></label>
         <div class="range-row">
           <input class="range" id="fee" type="range" min="0" max="2" step="0.01" value="0.25">
           <output class="range-val" for="fee" id="feeOut">0.25%</output>
@@ -106,15 +102,13 @@
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">After you stop</h2>
+        <h2 class="group__title" data-i18n="fire.gAfter">停下來之後</h2>
         <span class="group__aside">the part that decides it</span>
       </div>
 
       <div class="field">
-        <label class="field__label" for="swr">
-          Withdrawal rate
-          <span class="field__hint" id="swrNote">4% rule</span>
-        </label>
+        <label class="field__label" for="swr"><span data-i18n="fire.swr">提領率</span>
+          <span class="field__hint" id="swrNote"></span></label>
         <div class="range-row">
           <input class="range" id="swr" type="range" min="2" max="7" step="0.1" value="4">
           <output class="range-val" for="swr" id="swrOut">4.0%</output>
@@ -122,7 +116,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="horizon">Years the money must last</label>
+        <label class="field__label" for="horizon"><span data-i18n="fire.horizon">這筆錢要撐幾年</span></label>
         <div class="range-row">
           <input class="range" id="horizon" type="range" min="10" max="60" step="1" value="35">
           <output class="range-val" for="horizon" id="horizonOut">35</output>
@@ -130,10 +124,8 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="cutback">
-          Cut spending in bad years
-          <span class="field__hint">flexibility</span>
-        </label>
+        <label class="field__label" for="cutback"><span data-i18n="fire.cutback">壞年頭時縮減支出</span>
+          <span class="field__hint"></span></label>
         <div class="range-row">
           <input class="range" id="cutback" type="range" min="0" max="30" step="1" value="10">
           <output class="range-val" for="cutback" id="cutbackOut">10%</output>
@@ -142,8 +134,8 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Currency</h2></div>
-      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+      <div class="group__head"><h2 class="group__title" data-i18n="common.currency">幣別</h2></div>
+      <div class="seg" id="curSeg" role="group" data-i18n-attr="aria-label:common.currency">
         <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
         <button type="button" data-cur="USD" aria-pressed="false">USD</button>
         <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
@@ -152,11 +144,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn--ghost" id="btnShare" type="button">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
-        Copy link
-      </button>
-      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+      <button class="btn btn--ghost" id="btnShare" type="button"><span data-i18n="common.copyLink">複製連結</span></button>
+      <button class="btn btn--quiet" id="btnReset" type="button" data-i18n="common.reset">重設</button>
     </div>
   </aside>
 
@@ -164,29 +153,29 @@
 
     <div class="stage__head">
       <div>
-        <h1 class="stage__title">FIRE</h1>
-        <p class="stage__sub">Two questions, not one. How long until you could stop, and whether the money survives once you do.</p>
+        <h1 class="stage__title" data-i18n="fire.h1">財務自由</h1>
+        <p class="stage__sub" data-i18n="fire.sub">這是兩個問題，不是一個。多久之後可以不工作，以及不工作之後錢撐不撐得住。</p>
       </div>
     </div>
 
     <div class="metrics" id="metrics">
       <div class="metric" id="mYears">
-        <div class="metric__label">Work remaining</div>
+        <div class="metric__label" data-i18n="fire.mYears">還要工作</div>
         <div class="metric__value metric__value--accent num" id="vYears">-</div>
         <div class="metric__foot" id="fYears">&nbsp;</div>
       </div>
       <div class="metric" id="mTarget">
-        <div class="metric__label">Number you need</div>
+        <div class="metric__label" data-i18n="fire.mTarget">你需要的數字</div>
         <div class="metric__value num" id="vTarget">-</div>
         <div class="metric__foot" id="fTarget">&nbsp;</div>
       </div>
       <div class="metric" id="mOdds">
-        <div class="metric__label">Survives the horizon</div>
+        <div class="metric__label" data-i18n="fire.mOdds">撐得過這段期間的機率</div>
         <div class="metric__value num" id="vOdds">-</div>
         <div class="metric__foot" id="fOdds">&nbsp;</div>
       </div>
       <div class="metric" id="mMonthly">
-        <div class="metric__label">Monthly income it buys</div>
+        <div class="metric__label" data-i18n="fire.mMonthly">換算成每月可用</div>
         <div class="metric__value num" id="vMonthly">-</div>
         <div class="metric__foot" id="fMonthly">&nbsp;</div>
       </div>
@@ -194,7 +183,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" aria-labelledby="pathTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="pathTitle">Accumulate, then withdraw</h2>
+        <h2 class="panel__title" id="pathTitle" data-i18n="fire.pathTitle">先累積，再提領</h2>
         <div class="legend" id="legend"></div>
       </div>
       <div class="panel__body">
@@ -206,7 +195,7 @@
     <div class="split split--even" data-reveal>
       <section class="panel" aria-labelledby="oddsTitle">
         <div class="panel__head">
-          <h2 class="panel__title" id="oddsTitle">Withdrawal rate against the odds</h2>
+          <h2 class="panel__title" id="oddsTitle" data-i18n="fire.oddsTitle">提領率與成功機率</h2>
           <span class="group__aside" id="simCount">600 runs each</span>
         </div>
         <div class="panel__body">
@@ -216,7 +205,7 @@
       </section>
 
       <section class="panel" aria-labelledby="riskTitle">
-        <div class="panel__head"><h2 class="panel__title" id="riskTitle">Where the risk actually is</h2></div>
+        <div class="panel__head"><h2 class="panel__title" id="riskTitle" data-i18n="fire.riskTitle">風險真正的所在</h2></div>
         <div class="panel__body">
           <div class="dial-row" id="dials"></div>
           <div class="note note--accent" style="margin-top:var(--s5)">
@@ -229,18 +218,15 @@
 
     <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="tblTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="tblTitle">Path, year by year</h2>
-        <button class="btn btn--quiet" id="btnCsv" type="button">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>
-          Download CSV
-        </button>
+        <h2 class="panel__title" id="tblTitle" data-i18n="fire.tblTitle">逐年路徑</h2>
+        <button class="btn btn--quiet" id="btnCsv" type="button"><span data-i18n="common.csv">下載 CSV</span></button>
       </div>
       <div class="panel__body panel__body--flush">
         <div class="table-scroll" style="max-height:420px">
           <table class="table" id="tbl">
             <thead><tr>
-              <th scope="col">Year</th><th scope="col">Phase</th><th scope="col">Median</th>
-              <th scope="col">Unlucky (10th)</th><th scope="col">Lucky (90th)</th><th scope="col">Spending</th>
+              <th scope="col" data-i18n="common.year">年</th><th scope="col" data-i18n="fire.thPhase">階段</th><th scope="col" data-i18n="fire.thMedian">中位數</th>
+              <th scope="col" data-i18n="fire.thUnlucky">不順（第 10 百分位）</th><th scope="col" data-i18n="fire.thLucky">順利（第 90 百分位）</th><th scope="col" data-i18n="fire.thSpend">支出</th>
             </tr></thead>
             <tbody></tbody>
           </table>
@@ -248,11 +234,7 @@
       </div>
     </section>
 
-    <p class="disclosure" style="margin-top:var(--s5)">
-      Returns are drawn from a normal distribution each year, which understates both crashes and recoveries.
-      Real sequences are lumpier than this, so treat the survival number as a comparison between choices rather
-      than a probability about your life. All figures are in today's money because the return input is already real.
-    </p>
+    <p class="disclosure" style="margin-top:var(--s5)" data-i18n="fire.disclosure"></p>
   </main>
 
 </div>

@@ -2,12 +2,14 @@
    Every number on this page is computed by the same arithmetic the tools use. */
 
 import {
-  money, moneyShort, pct, setCurrency, mountShell, debounce, bindRange, clamp,
+  money, moneyShort, pct, setCurrency, mountShell, debounce, bindRange, clamp, t, escapeHtml, yearLabel,
 } from './core.js';
+import { detectCurrency } from './i18n.js';
+import { loadProfile, hasProfile, derive } from './profile.js';
 import { lineChart } from './chart.js';
 import { countTo, hubStory, bindToolCards, revealOnScroll, refreshScroll, MOTION_OK } from './motion.js';
 
-setCurrency('TWD');
+setCurrency(detectCurrency());
 
 /* ------------------------------------------------------- shared model */
 
@@ -66,18 +68,18 @@ function renderInstrument(animate = true) {
     el('instGain').textContent = money(r.gainReal);
     el('instFeeCost').textContent = money(r.feeCostReal);
   }
-  el('instLive').textContent = `${pct(inst.rate)} return · ${pct(inst.fee, 2)} fee`;
+  el('instLive').textContent = t('hub.instLive', { rate: pct(inst.rate), fee: pct(inst.fee, 2) });
 
   lineChart($('#instChart'), {
     series: [
-      { key: 'real', label: "Today's money", values: r.real, color: '--accent', area: true, areaOpacity: 0.11 },
-      { key: 'paid', label: 'Contributions', values: r.year.map((y) => inst.monthly * 12 * y), color: '--slate-400', width: 1.5 },
+      { key: 'real', label: t('compound.legendReal'), values: r.real, color: '--accent', area: true, areaOpacity: 0.11 },
+      { key: 'paid', label: t('compound.legendPaid'), values: r.year.map((y) => inst.monthly * 12 * y), color: '--slate-400', width: 1.5 },
     ],
-    x: { values: r.year, format: (v) => (v === 0 ? 'now' : 'yr ' + v), readoutLabel: 'Year' },
+    x: { values: r.year, format: yearLabel, readoutLabel: t('common.year') },
     y: { format: moneyShort },
     height: 190,
     endLabels: false,
-    table: { caption: 'Balance in today’s money by year', xLabel: 'Year' },
+    table: { caption: t('compound.chartTitle'), xLabel: t('common.year') },
   });
 }
 
@@ -95,23 +97,20 @@ function renderStory(progress) {
   const noFee = storyFull.noFee.slice(0, upto + 1);
   const real = storyFull.real.slice(0, upto + 1);
 
-  $('#storyYear').textContent = 'Year ' + upto;
-  $('#storyPhase').textContent =
-    upto < 8 ? 'contributions still dominate'
-    : upto < 18 ? 'compounding takes over'
-    : upto < 26 ? 'fees start to bite'
-    : 'the gap is the cost';
+  $('#storyYear').textContent = t('hub.storyYear', { n: upto });
+  $('#storyPhase').textContent = t(
+    upto < 8 ? 'hub.phase1' : upto < 18 ? 'hub.phase2' : upto < 26 ? 'hub.phase3' : 'hub.phase4');
 
   lineChart($('#storyChart'), {
     series: [
-      { key: 'nofee', label: 'Before fees', values: noFee, color: '--slate-400', width: 1.5 },
-      { key: 'real', label: 'After fees and inflation', values: real, color: '--accent', area: true, areaOpacity: 0.11 },
+      { key: 'nofee', label: t('hub.legendBefore'), values: noFee, color: '--slate-400', width: 1.5 },
+      { key: 'real', label: t('hub.legendAfter'), values: real, color: '--accent', area: true, areaOpacity: 0.11 },
     ],
-    x: { values: year, format: (v) => (v === 0 ? 'now' : 'yr ' + v) },
+    x: { values: year, format: yearLabel },
     y: { format: moneyShort, min: 0, max: storyFull.endNoFee * 1.05 },
     height: 260,
     endLabels: false,
-    table: { caption: 'Balance before and after fees and inflation', xLabel: 'Year' },
+    table: { caption: t('hub.storyTitle'), xLabel: t('common.year') },
   });
 
   const i = upto;
@@ -129,17 +128,11 @@ function renderStory(progress) {
 /** Each card's sparkline is a real curve from that tool's own arithmetic. */
 const CARDS = [
   {
-    name: 'Compound', path: 'compound/',
-    q: 'What does regular investing actually become?',
-    why: 'Most calculators leave out fees and inflation, which is exactly where a 25-year answer goes wrong.',
-    tags: ['fees', 'inflation', 'contribution growth'],
+    key: 'compound', path: 'compound/',
     curve: () => project({ monthly: 10000, years: 25, rate: 7, fee: 0.3, inflation: 2.2 }).real,
   },
   {
-    name: 'FIRE', path: 'fire/',
-    q: 'When can you stop, and does the money last?',
-    why: 'Six hundred simulated return sequences, because the order of good and bad years decides it.',
-    tags: ['simulation', 'withdrawal rate', 'flexibility'],
+    key: 'fire', path: 'fire/',
     curve: () => {
       // Accumulate to a target, then draw down: the shape of the whole plan.
       const up = project({ initial: 2e6, monthly: 40000, years: 19, rate: 5 }).bal;
@@ -149,26 +142,17 @@ const CARDS = [
     },
   },
   {
-    name: 'Rebalance', path: 'rebalance/',
-    q: 'What do you buy to get back to target?',
-    why: 'Every other tool says sell. This one prices the sell order and finds the cash-only route first.',
-    tags: ['drift bands', 'buy only', 'tax drag'],
+    key: 'rebalance', path: 'rebalance/',
     curve: () => Array.from({ length: 26 }, (_, i) =>
       60 + 12 * Math.sin(i / 2.4) + i * 0.55 + (i > 18 ? -6 : 0)),
   },
   {
-    name: 'Dividend', path: 'dividend/',
-    q: 'What lands in the account, and in which month?',
-    why: 'Yield is quoted per year. Rent is due every month, and five of them can pay nothing.',
-    tags: ['calendar', 'after tax', 'growth on cost'],
+    key: 'dividend', path: 'dividend/',
     curve: () => Array.from({ length: 24 }, (_, i) =>
       [0, 0, 42, 0, 0, 18, 0, 0, 51, 0, 0, 22][i % 12] + i * 1.2),
   },
   {
-    name: 'Mortgage', path: 'mortgage/',
-    q: 'What does paying extra actually save?',
-    why: 'The payment is trivial arithmetic. The interest curve, and whether investing beats it, is not.',
-    tags: ['overpayment', 'break-even', 'grace period'],
+    key: 'mortgage', path: 'mortgage/',
     curve: () => {
       const P = 12e6, r = 0.0235 / 12, n = 360;
       const pmt = (P * r) / (1 - Math.pow(1 + r, -n)) + 5000;
@@ -182,10 +166,7 @@ const CARDS = [
     },
   },
   {
-    name: 'Allocation', path: 'allocation/',
-    q: 'Is this mix better, or only different?',
-    why: 'Risk written as a number instead of the word moderate, with the frontier your mix sits under.',
-    tags: ['frontier', 'correlation', 'risk contribution'],
+    key: 'allocation', path: 'allocation/',
     curve: () => Array.from({ length: 30 }, (_, i) => {
       const x = i / 29;
       return 30 + 62 * Math.sqrt(x) * (1 - 0.18 * x);   // concave frontier shape
@@ -205,26 +186,27 @@ function sparkPath(values, w = 300, h = 54) {
   return { line, under };
 }
 
+const cap = (k) => k[0].toUpperCase() + k.slice(1);
+
 function renderTools() {
   $('#toolGrid').innerHTML = CARDS.map((c) => {
     const { line, under } = sparkPath(c.curve());
     return `<a class="tool-card" href="${c.path}">
       <div class="tool-card__top">
-        <span class="tool-card__name">${c.name}</span>
+        <span class="tool-card__name">${escapeHtml(t(c.key + '.h1'))}</span>
         <span class="tool-card__go" aria-hidden="true">
           <svg viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5h10M9.5 4.5l4 4-4 4"/></svg>
         </span>
       </div>
       <div>
-        <p class="tool-card__q">${c.q}</p>
-        <p class="tool-card__why">${c.why}</p>
+        <p class="tool-card__q">${escapeHtml(t('hub.cards' + cap(c.key)))}</p>
+        <p class="tool-card__why">${escapeHtml(t('hub.why' + cap(c.key)))}</p>
       </div>
       <div class="tool-card__spark" aria-hidden="true">
         <svg viewBox="0 0 300 54" preserveAspectRatio="none">
           <path class="under" d="${under}"/><path d="${line}"/>
         </svg>
       </div>
-      <div class="tool-card__meta">${c.tags.map((t) => `<span class="tag">${t}</span>`).join('')}</div>
     </a>`;
   }).join('');
 }
@@ -239,6 +221,8 @@ function boot() {
   renderStory(0);
 
   const onMonthly = debounce((v) => { inst.monthly = v; renderInstrument(); }, 60);
+  $('#instMonthlyOut').textContent = money(inst.monthly);
+  $('#instFeeOut').textContent = pct(inst.fee, 2);
   bindRange($('#instMonthly'), (v) => {
     $('#instMonthlyOut').textContent = money(v);
     onMonthly(v);
@@ -254,6 +238,24 @@ function boot() {
   bindToolCards();
   revealOnScroll('.claim__item');
 
+  // If the visitor already has a file, the miniature runs on their own surplus
+  // rather than a made-up number, which is the point being argued on this page.
+  const P = loadProfile();
+  if (hasProfile(P)) {
+    const d = derive(P);
+    setCurrency(P.currency);
+    inst.monthly = clamp(Math.round(Math.max(0, d.surplus) / 1000) * 1000, 1000, 60000);
+    inst.fee = P.assumptions.fee;
+    inst.rate = P.assumptions.rate;
+    inst.inflation = P.assumptions.inflation;
+    $('#instMonthly').value = inst.monthly;
+    $('#instFee').value = inst.fee;
+    $('#instMonthlyOut').textContent = money(inst.monthly);
+    $('#instFeeOut').textContent = pct(inst.fee, 2);
+    renderInstrument(false);
+  }
+
+  window.addEventListener('ledger:locale', () => { renderTools(); renderInstrument(false); renderStory(1); });
   window.addEventListener('ledger:theme', () => { renderInstrument(false); renderStory(1); });
   window.addEventListener('load', () => refreshScroll());
 }

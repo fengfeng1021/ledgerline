@@ -64,10 +64,13 @@
   /* ---- type ------------------------------------------------------- */
   /* One family, two widths. Archivo carries a width axis, so display type can be
      expanded and authoritative while UI text stays at normal width, without
-     pulling in a second face. */
-  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
-  --font-ui: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+     pulling in a second face. Archivo has no CJK coverage, so Noto Sans TC sits
+     behind it: Latin resolves to Archivo, Han characters fall through. Google
+     Fonts serves Noto by unicode-range, so an English visitor downloads none of it. */
+  --font-cjk: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC";
+  --font-display: "Archivo", var(--font-cjk), ui-sans-serif, system-ui, sans-serif;
+  --font-ui: "Archivo", var(--font-cjk), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", var(--font-cjk), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Sized so the hero headline holds two lines and the CTA stays above the fold
      on a 720px-tall viewport. A headline that wraps to three lines is a

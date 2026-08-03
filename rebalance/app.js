@@ -4,6 +4,8 @@ import {
   money, moneyShort, pct, num, setCurrency, curSymbol, CURRENCIES,
   createStore, bindNumber, bindRange, debounce, copyText, mountShell, clamp, toast,
 } from '../assets/js/core.js';
+import { t } from '../assets/js/i18n.js';
+import { mountProfileBridge } from '../assets/js/bridge.js';
 import { donut } from '../assets/js/chart.js';
 import { countTo, flash, enterWorkbench, revealOnScroll } from '../assets/js/motion.js';
 
@@ -121,15 +123,15 @@ function render(s) {
 
   countTo(els.vTotal, a.total, money);
   els.fTotal.textContent = s.newCash > 0
-    ? `${money(a.held)} invested plus ${money(s.newCash)} waiting`
-    : `${s.holdings.length} holdings`;
+    ? t('rebalance.fTotalCash', { held: money(a.held), cash: money(s.newCash) })
+    : t('rebalance.fTotalPlain', { n: s.holdings.length });
 
   countTo(els.vDrift, a.worstBefore, (v) => pct(v, 1));
   els.vDrift.className = 'metric__value num ' +
     (a.worstBefore > s.tol ? 'metric__value--neg' : 'metric__value--pos');
   els.fDrift.textContent = a.outOfBand
-    ? `${a.outOfBand} of ${a.rows.length} outside your ${pct(s.tol, 1)} band`
-    : `everything inside your ${pct(s.tol, 1)} band, no action needed`;
+    ? t('rebalance.fDriftOut', { n: a.outOfBand, total: a.rows.length, tol: pct(s.tol, 1) })
+    : t('rebalance.fDriftIn', { tol: pct(s.tol, 1) });
 
   const band = a.outOfBand > 0 ? 'out' : 'in';
   if (lastBand && band !== lastBand) flash(els.mDrift);
@@ -137,19 +139,19 @@ function render(s) {
 
   countTo(els.vCash, a.cashToFix, money);
   els.fCash.textContent = a.cashToFix > 0
-    ? `${pct((a.cashToFix / Math.max(1, a.held)) * 100, 1)} of the portfolio, and no tax event`
-    : 'already reachable with the cash on hand';
+    ? t('rebalance.fCash', { pct: pct((a.cashToFix / Math.max(1, a.held)) * 100, 1) })
+    : t('rebalance.fCashNone');
 
   countTo(els.vCost, a.totalCost, money);
   els.fCost.textContent = a.totalCost > 0
-    ? `${money(a.feeCost)} in fees, ${money(a.taxCost)} in tax`
-    : 'no cost: nothing is being sold';
+    ? t('rebalance.fCost', { fee: money(a.feeCost), tax: money(a.taxCost) })
+    : t('rebalance.fCostNone');
 
   // --- donut + allocation list
   donut($('#donutNow'), a.rows.map((r) => ({ label: r.name, value: Math.max(0.0001, r.value), color: r.color })), {
     centerTop: moneyShort(a.held),
-    centerBottom: 'invested',
-    label: 'Current allocation',
+    centerBottom: t('rebalance.invested'),
+    label: t('rebalance.mixTitle'),
   });
 
   $('#allocList').innerHTML = a.rows.map((r) => `
@@ -179,11 +181,11 @@ function render(s) {
         <div class="drift__mark${out ? ' drift__mark--out' : ''}" style="left:${posPct}%"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:var(--t-xs);color:var(--ink-muted);margin-top:4px">
-        <span>${pct(-scale, 0)}</span><span>target ${pct(r.target, 0)}</span><span>+${pct(scale, 0)}</span>
+        <span>${pct(-scale, 0)}</span><span>${t('rebalance.driftTarget', { pct: pct(r.target, 0) })}</span><span>+${pct(scale, 0)}</span>
       </div>
     </div>`;
   }).join('');
-  $('#driftLegend').textContent = `band = ${pct(s.tol, 1)} tolerance`;
+  $('#driftLegend').textContent = t('rebalance.driftBand', { tol: pct(s.tol, 1) });
 
   // --- orders
   const acts = a.orders
@@ -199,16 +201,15 @@ function render(s) {
   const starvedOfCash = nothingToDo && a.outOfBand > 0 && s.mode === 'buy' && s.newCash <= 0;
   $('#orders').innerHTML = nothingToDo
     ? (starvedOfCash
-      ? `<div class="empty"><p class="empty__title">Drift, but nothing to buy with</p>
-         <p>${a.outOfBand} holding${a.outOfBand > 1 ? 's are' : ' is'} outside your band, and buy-only mode has no new money to work with.
-         Add ${money(a.cashToFix)} to reach target without selling, or switch to buy and sell.</p></div>`
-      : `<div class="empty"><p class="empty__title">Nothing to do</p>
-         <p>Every holding is inside your ${pct(s.tol, 1)} tolerance band. Rebalancing now would cost money and change nothing meaningful.</p></div>`)
+      ? `<div class="empty"><p class="empty__title">${t('rebalance.emptyStarved')}</p>
+         <p>${t('rebalance.emptyStarvedSub', { n: a.outOfBand, cash: money(a.cashToFix) })}</p></div>`
+      : `<div class="empty"><p class="empty__title">${t('rebalance.emptyOk')}</p>
+         <p>${t('rebalance.emptyOkSub', { tol: pct(s.tol, 1) })}</p></div>`)
     : acts.map((o) => `<div class="trade">
-        <span class="trade__side trade__side--${o.act}">${o.act}</span>
+        <span class="trade__side trade__side--${o.act}">${t('rebalance.' + o.act)}</span>
         <span>
           <span class="trade__name">${escapeHtml(o.name)}</span><br>
-          <span class="trade__sub">${pct(o.finalPct, 1)} now, ${pct(o.afterPct, 1)} after, target ${pct(o.target, 0)}</span>
+          <span class="trade__sub">${t('rebalance.orderSub', { now: pct(o.finalPct, 1), after: pct(o.afterPct, 1), target: pct(o.target, 0) })}</span>
         </span>
         <span class="trade__amt ${o.act === 'sell' ? 'c-neg' : o.act === 'buy' ? 'c-pos' : 'c-mute'}">${o.act === 'hold' ? '-' : money(Math.abs(o.delta))}</span>
       </div>`).join('');
@@ -218,17 +219,15 @@ function render(s) {
   const both = costOf(s, 'both');
   const saving = both.totalCost - buy.totalCost;
   els.cmpClaim.innerHTML = s.newCash <= 0
-    ? `Add new money and the comparison becomes real. Right now, only selling can move anything.`
-    : saving > 0
-      ? `Buying only keeps <span class="num c-pos">${money(saving)}</span> that selling would spend.`
-      : `Selling costs nothing extra here, because your tax rate and trading cost are both near zero.`;
+    ? t('rebalance.cmpNoCash')
+    : saving > 0 ? t('rebalance.cmpSave', { saving: money(saving) }) : t('rebalance.cmpNoDiff');
   els.cmpSub.textContent = s.newCash <= 0
-    ? `To reach target without a single sell order you would need ${money(a.cashToFix)} of new money. Until then, buy-only can narrow the gap but not close it.`
-    : `Buy-only leaves ${pct(buy.worstAfter, 1)} of drift against ${pct(both.worstAfter, 1)} for a full rebalance. Whether that gap is worth ${money(both.totalCost)} is the actual decision.`;
+    ? t('rebalance.cmpSubNoCash', { cash: money(a.cashToFix) })
+    : t('rebalance.cmpSub', { a: pct(buy.worstAfter, 1), b: pct(both.worstAfter, 1), cost: money(both.totalCost) });
 
   const bars = [
-    { label: 'Buy only', v: buy.totalCost, color: '--sage-400' },
-    { label: 'Buy and sell', v: both.totalCost, color: '--clay-400' },
+    { label: t('rebalance.barBuyOnly'), v: buy.totalCost, color: '--sage-400' },
+    { label: t('rebalance.barBuySell'), v: both.totalCost, color: '--clay-400' },
   ];
   const mx = Math.max(...bars.map((b) => b.v), 1);
   els.cmpBars.innerHTML = bars.map((b) => `<div class="fee-bar">
@@ -236,7 +235,7 @@ function render(s) {
       <div class="bar-track"><div class="bar-fill" style="width:${(b.v / mx) * 100}%;background:var(${b.color})"></div></div>
     </div>`).join('');
 
-  $('#targetSum').textContent = pct(a.tgtSum, 0) + (Math.abs(a.tgtSum - 100) > 0.5 ? ' target' : '');
+  $('#targetSum').textContent = pct(a.tgtSum, 0);
   $('#targetSum').style.color = Math.abs(a.tgtSum - 100) > 0.5 ? 'var(--clay-400)' : '';
   syncRail(s);
 }
@@ -298,13 +297,13 @@ function boot() {
     if (!del) return;
     const i = Number(del.dataset.del);
     const holdings = store.read('holdings').filter((_, x) => x !== i);
-    if (!holdings.length) { toast('Keep at least one holding'); return; }
+    if (!holdings.length) { toast(t('profile.keepOne')); return; }
     store.set({ holdings });
     renderHoldings(store.get());
   });
 
   $('#btnAdd').addEventListener('click', () => {
-    const holdings = [...store.read('holdings'), { name: 'New holding', value: 0, target: 0 }];
+    const holdings = [...store.read('holdings'), { name: '', value: 0, target: 0 }];
     store.set({ holdings });
     renderHoldings(store.get());
     const rows = $('#holdings').querySelectorAll('.holding__name');
@@ -315,11 +314,11 @@ function boot() {
   $('#btnNormalise').addEventListener('click', () => {
     const hs = store.read('holdings');
     const sum = hs.reduce((a, h) => a + Math.max(0, h.target), 0);
-    if (!sum) { toast('Set a target on at least one holding'); return; }
+    if (!sum) { toast(t('profile.keepOne')); return; }
     const holdings = hs.map((h) => ({ ...h, target: Number(((Math.max(0, h.target) / sum) * 100).toFixed(1)) }));
     store.set({ holdings });
     renderHoldings(store.get());
-    toast('Targets now add to 100%');
+    toast(t('profile.normalised'));
   });
 
   $('#presets').addEventListener('click', (e) => {
@@ -356,23 +355,26 @@ function boot() {
     const { s, a } = last;
     const lines = a.orders
       .map((o) => {
-        const act = Math.abs(o.delta) < 1 || Math.abs(o.drift) <= s.tol ? 'HOLD' : o.delta > 0 ? 'BUY ' : 'SELL';
-        return `${act}  ${o.name.padEnd(22)} ${act === 'HOLD' ? '' : money(Math.abs(o.delta))}`;
+        const key = Math.abs(o.delta) < 1 || Math.abs(o.drift) <= s.tol ? 'hold' : o.delta > 0 ? 'buy' : 'sell';
+        return `${t('rebalance.' + key).toUpperCase().padEnd(5)} ${o.name.padEnd(22)} ${key === 'hold' ? '' : money(Math.abs(o.delta))}`;
       })
       .join('\n');
     copyText(
-      `Ledgerline rebalance\nPortfolio ${money(a.total)}  ·  largest drift ${pct(a.worstBefore, 1)}\n\n${lines}\n\nEstimated cost ${money(a.totalCost)}`,
-      'Order list copied'
+      `Ledgerline\n${t('rebalance.mTotal')} ${money(a.total)}\n${t('rebalance.mDrift')} ${pct(a.worstBefore, 1)}\n\n${lines}\n\n${t('rebalance.mCost')} ${money(a.totalCost)}`,
+      t('rebalance.ordersCopied')
     );
   });
 
-  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), 'Link copied. It carries your portfolio.'));
+  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), t('common.copied')));
   $('#btnReset').addEventListener('click', () => { store.reset(); renderHoldings(store.get()); });
+
+  mountProfileBridge('rebalance', store, { afterAdopt: () => { renderHoldings(store.get()); render(store.get()); } });
 
   render(store.get());
   enterWorkbench();
   revealOnScroll();
   window.addEventListener('ledger:theme', () => render(store.get()));
+  window.addEventListener('ledger:locale', () => render(store.get()));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

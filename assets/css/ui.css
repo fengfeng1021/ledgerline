@@ -44,6 +44,15 @@
 }
 .nav__link:hover { color: var(--ink-strong); background: var(--surface-panel); }
 .nav__link[aria-current="page"] { color: var(--accent); }
+/* The file is the product; the tools are what read it. The nav says so. */
+.nav__link--strong { color: var(--ink-strong); font-weight: 600; }
+.nav__sep {
+  width: 1px; height: 16px; flex: none;
+  background: var(--hairline-soft); margin-inline: 6px;
+}
+@media (max-width: 860px) {
+  .nav__sep { width: auto; height: 1px; margin: 6px 0; }
+}
 
 .nav__tool {
   display: none;
@@ -863,6 +872,162 @@
   font-size: 1.3rem; color: var(--ink-strong); letter-spacing: -0.03em;
 }
 .dial__note { font-size: var(--t-xs); color: var(--ink-muted); margin-top: 6px; }
+
+/* ==================================================================
+   11. PROFILE: the objects that only exist because the file persists
+   ================================================================== */
+
+/* Action list: the reason to come back. Each row is a real state of the file. */
+.action {
+  display: grid;
+  grid-template-columns: 3px 1fr auto;
+  gap: var(--s4);
+  align-items: center;
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline-soft) 55%, transparent);
+}
+.action:last-child { border-bottom: 0; }
+.action__tick { align-self: stretch; border-radius: 2px; background: var(--ink-500); }
+.action--warn .action__tick { background: var(--clay-400); }
+.action--good .action__tick { background: var(--sage-400); }
+.action--info .action__tick { background: var(--accent); }
+.action__what {
+  font-size: var(--t-body); font-weight: 600; color: var(--ink-strong);
+  margin-bottom: 4px;
+}
+.action__why { font-size: var(--t-sm); color: var(--ink-second); max-width: 62ch; }
+.action__go {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  font-size: var(--t-sm); font-weight: 500; color: var(--ink-second);
+  white-space: nowrap;
+  transition: border-color 0.16s var(--ease-out), color 0.16s var(--ease-out);
+}
+.action__go:hover { border-color: var(--accent); color: var(--accent); }
+.action__go svg { width: 13px; height: 13px; }
+
+/* Snapshot timeline rows */
+.snap {
+  display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--s4);
+  align-items: baseline;
+  padding: var(--s3) var(--s5);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline-soft) 55%, transparent);
+}
+.snap:last-child { border-bottom: 0; }
+.snap__date {
+  font-family: var(--font-mono); font-size: var(--t-sm); color: var(--ink-muted);
+  min-width: 9ch;
+}
+.snap__note { font-size: var(--t-sm); color: var(--ink-second); }
+.snap__net {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  color: var(--ink-strong); text-align: right;
+}
+.snap__del {
+  width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: var(--r-sm); color: var(--ink-muted);
+  opacity: 0; transition: opacity 0.14s var(--ease-out);
+}
+.snap:hover .snap__del, .snap__del:focus-visible { opacity: 1; }
+.snap__del:hover { color: var(--neg); background: var(--highlight); }
+.snap__del svg { width: 11px; height: 11px; }
+
+/* Journal entries */
+.entry {
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline-soft) 55%, transparent);
+  position: relative;
+}
+.entry:last-child { border-bottom: 0; }
+.entry__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s3); margin-bottom: 5px;
+}
+.entry__what { font-size: var(--t-body); font-weight: 600; color: var(--ink-strong); }
+.entry__date { font-family: var(--font-mono); font-size: var(--t-xs); color: var(--ink-muted); }
+.entry__why { font-size: var(--t-sm); color: var(--ink-second); max-width: 68ch; white-space: pre-wrap; }
+.entry__del {
+  position: absolute; right: var(--s3); bottom: var(--s3);
+  width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: var(--r-sm); color: var(--ink-muted);
+  opacity: 0; transition: opacity 0.14s var(--ease-out);
+}
+.entry:hover .entry__del, .entry__del:focus-visible { opacity: 1; }
+.entry__del:hover { color: var(--neg); background: var(--highlight); }
+.entry__del svg { width: 11px; height: 11px; }
+
+.textarea {
+  width: 100%; min-height: 74px; resize: vertical;
+  padding: 9px 11px;
+  background: var(--surface-well);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  outline: none;
+  font-size: var(--t-sm); line-height: 1.55; color: var(--ink-strong);
+  transition: border-color 0.16s var(--ease-out);
+}
+.textarea:hover { border-color: var(--ink-500); }
+.textarea:focus { border-color: var(--accent); }
+.textarea::placeholder { color: var(--ink-muted); }
+
+/* Profile holding row carries two more columns than the tool version */
+.holding--profile {
+  grid-template-columns: 10px minmax(80px, 1.3fr) minmax(70px, 1fr) 58px 56px 76px 24px;
+}
+.holding-head--profile {
+  grid-template-columns: 10px minmax(80px, 1.3fr) minmax(70px, 1fr) 58px 56px 76px 24px;
+}
+.holding__sel {
+  background: var(--surface-well); border: 1px solid transparent; outline: none;
+  border-radius: var(--r-sm); padding: 5px 4px; width: 100%; min-width: 0;
+  font-size: var(--t-xs); color: var(--ink-body);
+}
+.holding__sel:hover { border-color: var(--hairline); }
+.holding__sel:focus { border-color: var(--accent); }
+@media (max-width: 1180px) {
+  .holding--profile, .holding-head--profile {
+    grid-template-columns: 10px minmax(70px, 1.2fr) minmax(66px, 1fr) 52px 50px 24px;
+  }
+  .holding--profile .holding__freq, .holding-head--profile .h-freq { display: none; }
+}
+
+/* Profile uses a wider single column rather than the rail/stage split */
+.page {
+  max-width: 1080px; margin-inline: auto;
+  padding: var(--s5) var(--s5) var(--s9);
+}
+@media (max-width: 720px) { .page { padding-inline: var(--s4); } }
+.page__head { margin-bottom: var(--s5); }
+
+.mini-field { display: grid; gap: 6px; }
+.mini-field > label {
+  font-size: var(--t-xs); text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-muted);
+}
+.grid-fields {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s4);
+}
+
+/* The shared-file card at the top of every tool rail. */
+.profile-cta {
+  display: grid; gap: 6px;
+  padding: var(--s4);
+  margin-bottom: var(--s5);
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--highlight);
+  transition: border-color 0.16s var(--ease-out);
+}
+a.profile-cta:hover { border-color: var(--accent); }
+.profile-cta.is-synced { border-color: color-mix(in srgb, var(--sage-400) 50%, transparent); }
+.profile-cta__title { font-size: var(--t-sm); font-weight: 600; color: var(--ink-strong); }
+.profile-cta.is-synced .profile-cta__title { color: var(--pos); }
+.profile-cta__sub { font-size: var(--t-xs); color: var(--ink-muted); }
+.profile-cta__row { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s2); }
+.profile-cta__row .btn { padding: 6px 10px; font-size: var(--t-xs); }
 
 /* Preset row */
 .presets { display: flex; flex-wrap: wrap; gap: var(--s2); }

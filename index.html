@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh-TW" class="no-js" data-title-key="hub.title" data-desc-key="hub.desc">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ledgerline: financial models that do not flatter you</title>
-<meta name="description" content="Six investing calculators that include the fees, the inflation and the bad years. No account, no upload, no tracking. Everything runs in your browser.">
+<title>帳線：不會粉飾數字的理財模型</title>
+<meta name="description" content="一份留在你自己瀏覽器裡的財務檔案，加上六個把費用、通膨與壞年頭算進去的模型。不用註冊，不上傳，不追蹤。">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Ledgerline">
 <meta property="og:description" content="Six investing calculators that include the fees, the inflation and the bad years. Everything runs in your browser.">
@@ -13,7 +13,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/tokens.css">
 <link rel="stylesheet" href="assets/css/ui.css">
 <link rel="stylesheet" href="assets/css/hub.css">
@@ -22,7 +22,7 @@
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
-<a class="skip-link" href="#tools">Skip to the tools</a>
+<a class="skip-link" href="#tools" data-i18n="skip.tools">跳到工具列表</a>
 <header class="nav"></header>
 
 <main>
@@ -31,52 +31,49 @@
   <section class="hub hero">
     <div class="hero__copy">
       <h1>
-        <span class="hero__line pre">Models that don't</span>
-        <span class="hero__line pre"><em>flatter</em> you.</span>
+        <span class="hero__line pre" data-i18n-html="hub.h1a">你的財務，</span>
+        <span class="hero__line pre" data-i18n-html="hub.h1b">只留在<em>這台裝置</em>。</span>
       </h1>
-      <p class="hero__sub pre">
-        Six investing calculators that include the fees, the inflation and the bad years.
-        Nothing you type leaves this browser.
-      </p>
+      <p class="hero__sub pre" data-i18n="hub.sub">輸入一次持股與收支，六個模型同時有了意義。資料只留在這台裝置上。</p>
       <div class="hero__cta">
-        <a class="btn btn--primary btn--lg" href="compound/">Open Compound</a>
-        <a class="btn btn--ghost btn--lg" href="#tools">All six tools</a>
+        <a class="btn btn--primary btn--lg" href="profile/" data-i18n="hub.ctaPrimary">打開我的財務</a>
+        <a class="btn btn--ghost btn--lg" href="#tools" data-i18n="hub.ctaSecondary">先看六個工具</a>
       </div>
     </div>
 
     <!-- A working instrument, not a screenshot of one. -->
     <div class="instrument pre" id="instrument">
       <div class="instrument__bar">
-        <span class="instrument__label">Compound, in miniature</span>
+        <span class="instrument__label" data-i18n="hub.instLabel">複利模型，縮小版</span>
         <span class="instrument__live" id="instLive">7% return · 0.30% fee</span>
       </div>
       <div class="instrument__body">
         <div class="instrument__figure">
           <span class="instrument__value num" id="instValue">-</span>
-          <span class="instrument__caption" id="instCaption">after 25 years, in today's money</span>
+          <span class="instrument__caption" id="instCaption" data-i18n="hub.instCaption">25 年後，換算成今天的購買力</span>
         </div>
         <div class="instrument__chart chart" id="instChart"></div>
         <div class="instrument__controls">
           <div class="field" style="margin:0">
             <label class="field__label" for="instMonthly">
-              Monthly contribution
-              <span class="field__hint num" id="instMonthlyOut">NT$10,000</span>
+              <span data-i18n="hub.instMonthly">每月投入</span>
+              <span class="field__hint num" id="instMonthlyOut"></span>
             </label>
             <input class="range" id="instMonthly" type="range" min="1000" max="60000" step="1000" value="10000">
           </div>
           <div class="field" style="margin:0">
             <label class="field__label" for="instFee">
-              Annual fee
-              <span class="field__hint num" id="instFeeOut">0.30%</span>
+              <span data-i18n="hub.instFee">每年內扣費用</span>
+              <span class="field__hint num" id="instFeeOut"></span>
             </label>
             <input class="range" id="instFee" type="range" min="0" max="2.5" step="0.05" value="0.3">
           </div>
         </div>
       </div>
       <dl class="instrument__foot">
-        <div class="instrument__stat"><dt>You put in</dt><dd class="num" id="instIn">-</dd></div>
-        <div class="instrument__stat"><dt>Market added</dt><dd class="num" id="instGain">-</dd></div>
-        <div class="instrument__stat"><dt>Fees took</dt><dd class="num" id="instFeeCost">-</dd></div>
+        <div class="instrument__stat"><dt data-i18n="hub.instIn">你投入</dt><dd class="num" id="instIn">-</dd></div>
+        <div class="instrument__stat"><dt data-i18n="hub.instGain">市場給的</dt><dd class="num" id="instGain">-</dd></div>
+        <div class="instrument__stat"><dt data-i18n="hub.instFeeCost">費用拿走</dt><dd class="num" id="instFeeCost">-</dd></div>
       </dl>
     </div>
   </section>
@@ -85,23 +82,23 @@
   <section class="story" data-story aria-labelledby="storyTitle">
     <div class="hub story__pin" data-story-pin>
       <div>
-        <h2 class="story__title" id="storyTitle">Three things eat the number you were promised.</h2>
+        <h2 class="story__title" id="storyTitle" data-i18n="hub.storyTitle">有三件事在吃掉你被承諾的數字。</h2>
         <div class="story__steps">
           <div class="story__step" data-story-step>
             <span class="story__amount num" id="stepGross">-</span>
-            <p class="story__text">What a 7% return does to NT$10,000 a month over 30 years. This is the figure most calculators stop at.</p>
+            <p class="story__text" data-i18n="hub.step1">7% 報酬率讓每月一萬元在 30 年後變成的樣子。多數計算機講到這裡就停了。</p>
           </div>
           <div class="story__step" data-story-step>
             <span class="story__amount story__amount--neg num" id="stepFee">-</span>
-            <p class="story__text">Gone to a 1.5% annual fee. Not deducted from your contributions, deducted from the compounding itself, every year.</p>
+            <p class="story__text" data-i18n="hub.step2">被 1.5% 年費拿走的部分。它不是從你的本金扣，是從複利本身扣，每一年。</p>
           </div>
           <div class="story__step" data-story-step>
             <span class="story__amount story__amount--neg num" id="stepInf">-</span>
-            <p class="story__text">Gone to 2.2% inflation. The balance still says one number; a week of groceries costs another.</p>
+            <p class="story__text" data-i18n="hub.step3">被 2.2% 通膨吃掉的部分。帳面數字是一回事，一週的菜錢是另一回事。</p>
           </div>
           <div class="story__step" data-story-step>
             <span class="story__amount story__amount--final num" id="stepReal">-</span>
-            <p class="story__text">What is actually left to spend. Every tool here starts from this number instead of ending at it.</p>
+            <p class="story__text" data-i18n="hub.step4">真正能花的錢。這裡每個工具都從這個數字開始，而不是停在前面那個。</p>
           </div>
         </div>
       </div>
@@ -109,12 +106,12 @@
       <div class="story__viz">
         <div class="story__year">
           <b class="num" id="storyYear">Year 0</b>
-          <span id="storyPhase">contributions only</span>
+          <span id="storyPhase"></span>
         </div>
         <div class="chart" id="storyChart"></div>
         <div class="legend" style="margin-top:var(--s4)">
-          <span class="legend__item"><span class="legend__swatch" style="background:var(--slate-400)"></span>Before fees</span>
-          <span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>After fees and inflation</span>
+          <span class="legend__item"><span class="legend__swatch" style="background:var(--slate-400)"></span><span data-i18n="hub.legendBefore">扣費用前</span></span>
+          <span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span><span data-i18n="hub.legendAfter">扣掉費用與通膨</span></span>
         </div>
       </div>
     </div>
@@ -123,8 +120,8 @@
   <!-- ===================== TOOLS ===================== -->
   <div class="hub" id="tools">
     <div class="tools-head">
-      <h2>Six questions, answered properly.</h2>
-      <p>Each one replaces a spreadsheet you would otherwise build badly, and each one shows the assumption that decides the answer.</p>
+      <h2 data-i18n="hub.toolsH2">六個問題，一份資料。</h2>
+      <p data-i18n="hub.toolsP">在「我的財務」輸入一次，六個模型都會用同一份持股、同一份收支、同一組假設。不用重複輸入，也不會出現六個互相矛盾的答案。</p>
     </div>
     <div class="tools" id="toolGrid"></div>
   </div>
@@ -132,18 +129,18 @@
   <!-- ===================== CLAIM ===================== -->
   <section class="hub claim" aria-labelledby="claimTitle">
     <div class="claim__grid">
-      <h2 id="claimTitle">Nothing you type leaves the browser. That is checkable.</h2>
+      <h2 id="claimTitle" data-i18n="hub.claimH2">你輸入的東西不會離開瀏覽器。這件事可以驗證。</h2>
       <div class="claim__item">
-        <h3>No requests after load</h3>
-        <p>Open your developer tools, watch the network tab, and move every slider on any tool. Nothing goes out. The only requests are the fonts and the animation library, both from a public CDN, both at first paint.</p>
+        <h3 data-i18n="hub.claim1H">載入後沒有任何連線</h3>
+        <p data-i18n-html="hub.claim1P"></p>
       </div>
       <div class="claim__item">
-        <h3>Your numbers live in two places</h3>
-        <p>Your own <code>localStorage</code>, so a return visit picks up where you left off, and the URL after the <code>#</code>, so a link carries the whole scenario to someone else without a server ever seeing it.</p>
+        <h3 data-i18n="hub.claim2H">你的數字只存在兩個地方</h3>
+        <p data-i18n-html="hub.claim2P"></p>
       </div>
       <div class="claim__item">
-        <h3>Read the model</h3>
-        <p>Every projection is a few dozen lines of plain JavaScript with the formula written out. If a number looks wrong, the arithmetic is right there to check rather than behind an API.</p>
+        <h3 data-i18n="hub.claim3H">可以隨時帶著走</h3>
+        <p data-i18n-html="hub.claim3P"></p>
       </div>
     </div>
   </section>
@@ -151,10 +148,10 @@
   <div class="hub">
     <div class="cta-end">
       <div>
-        <h2>Start with the one that annoyed you most recently.</h2>
-        <p>Press <span class="palette__key">⌘</span> <span class="palette__key">K</span> anywhere in the suite to jump between tools.</p>
+        <h2 data-i18n="hub.endH2">先建立檔案，六個工具才會知道你在問誰的錢。</h2>
+        <p data-i18n-html="hub.endP"></p>
       </div>
-      <a class="btn btn--primary btn--lg" href="compound/">Open Compound</a>
+      <a class="btn btn--primary btn--lg" href="profile/" data-i18n="hub.endCta">打開我的財務</a>
     </div>
   </div>
 

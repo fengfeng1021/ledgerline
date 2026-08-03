@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-TW" class="no-js" data-title-key="profile.title" data-desc-key="profile.desc">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的財務 | 帳線</title>
+<meta name="description" content="一份留在你自己裝置上的財務檔案：持股、收支、貸款、淨值變化與待辦決策。">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="我的財務 | Ledgerline">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/ui.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip-link" href="#stage" data-i18n="skip.results">跳到結果</a>
+<header class="nav"></header>
+
+<main class="page" id="stage">
+
+  <div class="page__head stage__head">
+    <div>
+      <h1 class="stage__title" data-i18n="profile.h1">我的財務</h1>
+      <p class="stage__sub" data-i18n="profile.sub">這份資料是六個工具共同的來源。改這裡，六個工具一起變。</p>
+    </div>
+    <div class="seg" id="curSeg" role="group" data-i18n-attr="aria-label:common.currency">
+      <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
+      <button type="button" data-cur="USD" aria-pressed="false">USD</button>
+      <button type="button" data-cur="HKD" aria-pressed="false">HKD</button>
+      <button type="button" data-cur="JPY" aria-pressed="false">JPY</button>
+    </div>
+  </div>
+
+  <!-- ============ empty state ============ -->
+  <section class="panel" id="emptyState" hidden>
+    <div class="empty" style="padding-block:var(--s8)">
+      <p class="empty__title" data-i18n="profile.emptyH">先建立你的財務檔案</p>
+      <p data-i18n="profile.emptyP">填入你實際持有的部位跟每月收支。之後六個工具都會用這份資料，你不必在六個地方重複輸入同一件事。</p>
+      <div class="btn-row" style="justify-content:center;margin-top:var(--s3)">
+        <button class="btn btn--primary" id="btnDemo" data-i18n="profile.emptyCta">用範例資料試試看</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ overview ============ -->
+  <div id="live" hidden>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric__label" data-i18n="profile.mNet">淨資產</div>
+        <div class="metric__value metric__value--accent num" id="vNet">-</div>
+        <div class="metric__foot" id="fNet">&nbsp;</div>
+      </div>
+      <div class="metric" id="mChange">
+        <div class="metric__label" data-i18n="profile.mChange">距離上次紀錄</div>
+        <div class="metric__value num" id="vChange">-</div>
+        <div class="metric__foot" id="fChange">&nbsp;</div>
+      </div>
+      <div class="metric">
+        <div class="metric__label" data-i18n="profile.mSaving">每月結餘</div>
+        <div class="metric__value num" id="vSaving">-</div>
+        <div class="metric__foot" id="fSaving">&nbsp;</div>
+      </div>
+      <div class="metric">
+        <div class="metric__label" data-i18n="profile.mRunway">不工作能撐</div>
+        <div class="metric__value num" id="vRunway">-</div>
+        <div class="metric__foot" id="fRunway">&nbsp;</div>
+      </div>
+    </div>
+
+    <!-- ============ actions: the reason to return ============ -->
+    <section class="panel" style="margin-top:var(--s5)" aria-labelledby="actTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="actTitle" data-i18n="profile.actionsTitle">現在該做的事</h2>
+      </div>
+      <div class="panel__body panel__body--flush" id="actions"></div>
+    </section>
+
+    <!-- ============ holdings ============ -->
+    <section class="panel" style="margin-top:var(--s5)" aria-labelledby="holdTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="holdTitle" data-i18n="profile.holdingsTitle">持有部位</h2>
+        <span class="group__aside" id="targetSum">100%</span>
+      </div>
+      <div class="panel__body">
+        <p class="field__hint" style="margin-bottom:var(--s4)" data-i18n="profile.holdingsSub">市值、目標比重、殖利率、配息頻率。六個工具都讀這一份。</p>
+        <div class="holding-head holding-head--profile" aria-hidden="true">
+          <span></span>
+          <span data-i18n="profile.colName">名稱</span>
+          <span data-i18n="profile.colValue">市值</span>
+          <span data-i18n="profile.colTarget">目標</span>
+          <span data-i18n="profile.colYield">殖利率</span>
+          <span class="h-freq" data-i18n="profile.colFreq">配息</span>
+          <span></span>
+        </div>
+        <div class="holdings" id="holdings"></div>
+        <div class="btn-row" style="margin-top:var(--s4)">
+          <button class="btn btn--ghost" id="btnAdd" data-i18n="profile.addHolding">新增部位</button>
+          <button class="btn btn--quiet" id="btnNormalise" data-i18n="profile.normalise">目標補成 100%</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ cash + loans ============ -->
+    <div class="split split--even">
+      <section class="panel" aria-labelledby="cashTitle">
+        <div class="panel__head"><h2 class="panel__title" id="cashTitle" data-i18n="profile.cashTitle">現金與收支</h2></div>
+        <div class="panel__body">
+          <div class="grid-fields">
+            <div class="field" style="margin:0">
+              <label class="field__label" for="pCash" data-i18n="profile.cash">手上現金</label>
+              <div class="input-wrap" data-num="cash">
+                <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+                <input class="input" id="pCash" type="number" inputmode="numeric" value="0" min="0" step="10000">
+              </div>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="field__label" for="pEmergency">
+                <span data-i18n="profile.emergency">緊急預備金</span>
+                <span class="field__hint" data-i18n="profile.emergencyHint">從現金裡分出來的部分</span>
+              </label>
+              <div class="input-wrap" data-num="emergency">
+                <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+                <input class="input" id="pEmergency" type="number" inputmode="numeric" value="0" min="0" step="10000">
+              </div>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="field__label" for="pProperty">
+                <span data-i18n="profile.property">自住房與其他資產</span>
+                <span class="field__hint" data-i18n="profile.propertyHint">算進淨值，但不參與再平衡</span>
+              </label>
+              <div class="input-wrap" data-num="property">
+                <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+                <input class="input" id="pProperty" type="number" inputmode="numeric" value="0" min="0" step="100000">
+              </div>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="field__label" for="pIncome" data-i18n="profile.income">每月實拿收入</label>
+              <div class="input-wrap" data-num="income">
+                <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+                <input class="input" id="pIncome" type="number" inputmode="numeric" value="0" min="0" step="5000">
+              </div>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="field__label" for="pSpend" data-i18n="profile.spend">每月支出</label>
+              <div class="input-wrap" data-num="spend">
+                <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+                <input class="input" id="pSpend" type="number" inputmode="numeric" value="0" min="0" step="5000">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="loanTitle">
+        <div class="panel__head">
+          <h2 class="panel__title" id="loanTitle" data-i18n="profile.loansTitle">貸款</h2>
+          <button class="btn btn--quiet" id="btnAddLoan" data-i18n="profile.addLoan">新增貸款</button>
+        </div>
+        <div class="panel__body" id="loans"></div>
+      </section>
+    </div>
+
+    <!-- ============ shared assumptions ============ -->
+    <section class="panel" style="margin-top:var(--s5)" aria-labelledby="assumeTitle">
+      <div class="panel__head"><h2 class="panel__title" id="assumeTitle" data-i18n="profile.assumeTitle">共用假設</h2></div>
+      <div class="panel__body">
+        <p class="field__hint" style="margin-bottom:var(--s4)" data-i18n="profile.assumeSub">這幾個數字會被六個模型一起使用。改一次，全部同步。</p>
+        <div class="grid-fields" id="assume"></div>
+      </div>
+    </section>
+
+    <!-- ============ net worth timeline ============ -->
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="tlTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="tlTitle" data-i18n="profile.timelineTitle">淨值變化</h2>
+        <button class="btn btn--primary" id="btnSnap" data-i18n="profile.snapshot">存一筆快照</button>
+      </div>
+      <div class="panel__body">
+        <p class="field__hint" style="margin-bottom:var(--s4)" data-i18n="profile.timelineSub">每次更新完數字就存一筆。這條線是你唯一無法用計算機取代的東西。</p>
+        <div class="field" style="max-width:34rem">
+          <input class="input" id="snapNote" type="text" maxlength="140"
+                 style="border:1px solid var(--hairline);border-radius:var(--r-sm);background:var(--surface-well);font-family:var(--font-ui)"
+                 data-i18n-attr="placeholder:profile.snapshotNote,aria-label:profile.snapshotNote">
+        </div>
+        <div class="chart" id="tlChart" style="margin-top:var(--s4)"></div>
+      </div>
+      <div class="panel__body panel__body--flush" id="snaps"></div>
+    </section>
+
+    <!-- ============ decision journal ============ -->
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="jTitle">
+      <div class="panel__head"><h2 class="panel__title" id="jTitle" data-i18n="profile.journalTitle">決策日誌</h2></div>
+      <div class="panel__body">
+        <p class="field__hint" style="margin-bottom:var(--s4)" data-i18n="profile.journalSub">為什麼那樣配置，半年後一定會忘。寫下來的人，才不會在市場恐慌時推翻自己。</p>
+        <div class="grid-fields" style="grid-template-columns:1fr">
+          <div class="mini-field">
+            <label for="jWhat" data-i18n="profile.journalWhat">你決定了什麼</label>
+            <input class="input" id="jWhat" type="text" maxlength="120"
+                   style="border:1px solid var(--hairline);border-radius:var(--r-sm);background:var(--surface-well);font-family:var(--font-ui)"
+                   data-i18n-attr="placeholder:profile.journalWhatPh">
+          </div>
+          <div class="mini-field">
+            <label for="jWhy" data-i18n="profile.journalWhy">為什麼</label>
+            <textarea class="textarea" id="jWhy" maxlength="400" data-i18n-attr="placeholder:profile.journalWhyPh"></textarea>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:var(--s4)">
+          <button class="btn btn--ghost" id="btnJournal" data-i18n="profile.journalSave">記下來</button>
+        </div>
+      </div>
+      <div class="panel__body panel__body--flush" id="journal"></div>
+    </section>
+
+    <!-- ============ data ============ -->
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="dataTitle">
+      <div class="panel__head"><h2 class="panel__title" id="dataTitle" data-i18n="profile.dataTitle">你的資料</h2></div>
+      <div class="panel__body">
+        <p class="field__hint" style="max-width:66ch" data-i18n="profile.dataNote">所有東西都存在這台裝置的瀏覽器裡。換裝置、清快取、或用無痕模式，資料都不會跟著走，所以請定期匯出一份。</p>
+        <div class="btn-row" style="margin-top:var(--s4)">
+          <button class="btn btn--ghost" id="btnExport" data-i18n="profile.export">匯出檔案</button>
+          <button class="btn btn--ghost" id="btnImport" data-i18n="profile.import">匯入檔案</button>
+          <input type="file" id="fileInput" accept="application/json,.json" hidden>
+          <button class="btn btn--quiet" id="btnClear" data-i18n="profile.clear">清除全部</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-foot"></footer>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh-TW" class="no-js" data-title-key="allocation.title" data-desc-key="allocation.desc">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Allocation: is this mix better, or just different | Ledgerline</title>
-<meta name="description" content="Risk described in numbers rather than the word moderate. Correlation, volatility, drawdown, and where your mix sits against the frontier.">
+<title>資產配置：這個組合真的比較好嗎 | 帳線</title>
+<meta name="description" content="用數字描述風險，而不是「穩健型」三個字。相關性、波動度、回撤，以及你的組合落在效率前緣的哪裡。">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Allocation | Ledgerline">
 <meta property="og:description" content="Efficient frontier, correlation, and a drawdown estimate for the mix you actually hold.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/ui.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
@@ -19,17 +19,17 @@
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
-<a class="skip-link" href="#stage">Skip to results</a>
+<a class="skip-link" href="#stage" data-i18n="skip.results">跳到結果</a>
 <header class="nav"></header>
 
 <div class="shell">
 <div class="workbench">
 
-  <aside class="rail" aria-label="Asset mix">
+  <aside class="rail"><div id="profileLink"></div>
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Asset classes</h2>
+        <h2 class="group__title" data-i18n="allocation.gClasses">資產類別</h2>
         <span class="group__aside" id="wSum">100%</span>
       </div>
       <div class="holding-head" aria-hidden="true">
@@ -48,14 +48,12 @@
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">How they move together</h2>
+        <h2 class="group__title" data-i18n="allocation.gCorr">它們怎麼一起動</h2>
         <span class="group__aside">correlation</span>
       </div>
       <div class="field">
-        <label class="field__label" for="corr">
-          Average correlation
-          <span class="field__hint" id="corrNote">some diversification</span>
-        </label>
+        <label class="field__label" for="corr"><span data-i18n="allocation.corr">平均相關性</span>
+          <span class="field__hint" id="corrNote"></span></label>
         <div class="range-row">
           <input class="range" id="corr" type="range" min="-0.4" max="1" step="0.05" value="0.25">
           <output class="range-val" for="corr" id="corrOut">0.25</output>
@@ -68,9 +66,9 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Reference</h2></div>
+      <div class="group__head"><h2 class="group__title" data-i18n="allocation.gRef">參考基準</h2></div>
       <div class="field">
-        <label class="field__label" for="rf">Risk-free rate</label>
+        <label class="field__label" for="rf"><span data-i18n="allocation.rf">無風險利率</span></label>
         <div class="range-row">
           <input class="range" id="rf" type="range" min="0" max="8" step="0.1" value="2">
           <output class="range-val" for="rf" id="rfOut">2.0%</output>
@@ -84,11 +82,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn--ghost" id="btnShare" type="button">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
-        Copy link
-      </button>
-      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+      <button class="btn btn--ghost" id="btnShare" type="button"><span data-i18n="common.copyLink">複製連結</span></button>
+      <button class="btn btn--quiet" id="btnReset" type="button" data-i18n="common.reset">重設</button>
     </div>
   </aside>
 
@@ -96,29 +91,29 @@
 
     <div class="stage__head">
       <div>
-        <h1 class="stage__title">Allocation</h1>
-        <p class="stage__sub">Moderate is not a number. Here is what your mix is actually taking on, and what it is being paid for it.</p>
+        <h1 class="stage__title" data-i18n="allocation.h1">資產配置</h1>
+        <p class="stage__sub" data-i18n="allocation.sub">「穩健」不是一個數字。這裡是你的組合實際承擔了什麼，以及它為此拿到了什麼。</p>
       </div>
     </div>
 
     <div class="metrics" id="metrics">
       <div class="metric" id="mRet">
-        <div class="metric__label">Expected return</div>
+        <div class="metric__label" data-i18n="allocation.mRet">預期報酬</div>
         <div class="metric__value num" id="vRet">-</div>
         <div class="metric__foot" id="fRet">&nbsp;</div>
       </div>
       <div class="metric" id="mVol">
-        <div class="metric__label">Volatility</div>
+        <div class="metric__label" data-i18n="allocation.mVol">波動度</div>
         <div class="metric__value num" id="vVol">-</div>
         <div class="metric__foot" id="fVol">&nbsp;</div>
       </div>
       <div class="metric" id="mSharpe">
-        <div class="metric__label">Return per unit of risk</div>
+        <div class="metric__label" data-i18n="allocation.mSharpe">每單位風險的報酬</div>
         <div class="metric__value metric__value--accent num" id="vSharpe">-</div>
         <div class="metric__foot" id="fSharpe">&nbsp;</div>
       </div>
       <div class="metric" id="mDd">
-        <div class="metric__label">Bad year, 1 in 20</div>
+        <div class="metric__label" data-i18n="allocation.mDd">二十年會遇到一次的壞年頭</div>
         <div class="metric__value metric__value--neg num" id="vDd">-</div>
         <div class="metric__foot" id="fDd">&nbsp;</div>
       </div>
@@ -126,7 +121,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" aria-labelledby="frontTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="frontTitle">Your mix against every other mix</h2>
+        <h2 class="panel__title" id="frontTitle" data-i18n="allocation.frontTitle">你的組合對上所有其他組合</h2>
         <div class="legend">
           <span class="legend__item"><span class="legend__swatch" style="background:var(--accent);height:8px;width:8px;border-radius:99px"></span>Your mix</span>
           <span class="legend__item"><span class="legend__swatch" style="background:var(--ink-500);height:2px"></span>Best available at each risk level</span>
@@ -140,7 +135,7 @@
 
     <div class="split split--wide-right" data-reveal>
       <section class="panel" aria-labelledby="mixTitle">
-        <div class="panel__head"><h2 class="panel__title" id="mixTitle">The mix</h2></div>
+        <div class="panel__head"><h2 class="panel__title" id="mixTitle" data-i18n="allocation.mixTitle">配置</h2></div>
         <div class="panel__body">
           <div id="donut"></div>
           <div style="margin-top:var(--s5)" id="mixList"></div>
@@ -149,7 +144,7 @@
 
       <section class="panel" aria-labelledby="contribTitle">
         <div class="panel__head">
-          <h2 class="panel__title" id="contribTitle">Who is carrying the risk</h2>
+          <h2 class="panel__title" id="contribTitle" data-i18n="allocation.contribTitle">風險是誰在扛</h2>
           <span class="group__aside">weight against risk contribution</span>
         </div>
         <div class="panel__body" id="riskList"></div>
@@ -158,7 +153,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="rangeTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="rangeTitle">What a decade could look like</h2>
+        <h2 class="panel__title" id="rangeTitle" data-i18n="allocation.rangeTitle">十年之後可能長什麼樣</h2>
         <div class="legend" id="legend2"></div>
       </div>
       <div class="panel__body">
@@ -167,12 +162,7 @@
       <div class="readout" id="readout"></div>
     </section>
 
-    <p class="disclosure" style="margin-top:var(--s5)">
-      Expected returns are your inputs, not forecasts, and they are the single largest source of error in any
-      allocation model. A shared average correlation stands in for a full matrix, which understates how differently
-      pairs of assets behave. Volatility assumes normal returns; real markets have fatter tails, so the bad year
-      shown here is optimistic.
-    </p>
+    <p class="disclosure" style="margin-top:var(--s5)" data-i18n="allocation.disclosure"></p>
   </main>
 
 </div>

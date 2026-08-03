@@ -1,9 +1,11 @@
 /* Allocation - portfolio risk in numbers, and the frontier your mix sits under. */
 
 import {
-  money, moneyShort, pct, num, setCurrency, createStore, bindRange,
+  money, moneyShort, pct, num, setCurrency, createStore, bindRange, yearLabel,
   debounce, copyText, mountShell, clamp, toast,
 } from '../assets/js/core.js';
+import { t } from '../assets/js/i18n.js';
+import { mountProfileBridge } from '../assets/js/bridge.js';
 import { scatter, donut, lineChart } from '../assets/js/chart.js';
 import { countTo, flash, enterWorkbench, revealOnScroll } from '../assets/js/motion.js';
 
@@ -11,23 +13,23 @@ const PALETTE = ['--accent', '--sage-400', '--slate-400', '--plum-400', '--clay-
 
 const PRESETS = {
   balanced: [
-    { name: 'Global equity', w: 55, r: 7.2, v: 16 },
-    { name: 'Government bonds', w: 30, r: 3.1, v: 6 },
-    { name: 'Corporate credit', w: 10, r: 4.4, v: 8 },
-    { name: 'Cash', w: 5, r: 2.0, v: 0.6 },
+    { name: 'allocation.assetEquity', w: 55, r: 7.2, v: 16 },
+    { name: 'allocation.assetBondGov', w: 30, r: 3.1, v: 6 },
+    { name: 'allocation.assetBondCorp', w: 10, r: 4.4, v: 8 },
+    { name: 'allocation.assetCash', w: 5, r: 2.0, v: 0.6 },
   ],
   growth: [
-    { name: 'Global equity', w: 70, r: 7.2, v: 16 },
-    { name: 'Emerging equity', w: 15, r: 8.4, v: 22 },
-    { name: 'Government bonds', w: 10, r: 3.1, v: 6 },
-    { name: 'Cash', w: 5, r: 2.0, v: 0.6 },
+    { name: 'allocation.assetEquity', w: 70, r: 7.2, v: 16 },
+    { name: 'allocation.assetEM', w: 15, r: 8.4, v: 22 },
+    { name: 'allocation.assetBondGov', w: 10, r: 3.1, v: 6 },
+    { name: 'allocation.assetCash', w: 5, r: 2.0, v: 0.6 },
   ],
   allweather: [
-    { name: 'Global equity', w: 30, r: 7.2, v: 16 },
-    { name: 'Long bonds', w: 40, r: 3.6, v: 11 },
-    { name: 'Intermediate bonds', w: 15, r: 3.1, v: 6 },
-    { name: 'Commodities', w: 8, r: 4.0, v: 18 },
-    { name: 'Gold', w: 7, r: 3.4, v: 15 },
+    { name: 'allocation.assetEquity', w: 30, r: 7.2, v: 16 },
+    { name: 'allocation.assetLongBond', w: 40, r: 3.6, v: 11 },
+    { name: 'allocation.assetMidBond', w: 15, r: 3.1, v: 6 },
+    { name: 'allocation.assetCommodity', w: 8, r: 4.0, v: 18 },
+    { name: 'allocation.assetGold', w: 7, r: 3.4, v: 15 },
   ],
 };
 
@@ -107,6 +109,9 @@ const $ = (s) => document.querySelector(s);
 const els = {};
 let store, last = null, lastEfficient = null;
 
+/** Preset and profile-derived names arrive as i18n keys; typed names do not. */
+const nameOf = (a) => (a.name && a.name.includes('.') ? t(a.name) : a.name);
+
 function escapeHtml(x) {
   return String(x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -119,22 +124,21 @@ function render(s) {
   const sharpe = st.vol > 0 ? (st.ret - s.rf) / st.vol : 0;
 
   countTo(els.vRet, st.ret, (v) => pct(v, 2));
-  els.fRet.textContent = `${pct(st.ret - s.rf, 2)} above the risk-free rate`;
+  els.fRet.textContent = t('allocation.fRet', { excess: pct(st.ret - s.rf, 2) });
 
   countTo(els.vVol, st.vol, (v) => pct(v, 1));
   const naive = s.assets.reduce((a, x, i) => a + st.w[i] * x.v, 0);
   els.fVol.textContent = naive > st.vol
-    ? `diversification removed ${pct(naive - st.vol, 1)} of it`
-    : 'nothing left to diversify at this correlation';
+    ? t('allocation.fVol', { removed: pct(naive - st.vol, 1) })
+    : t('allocation.fVolNone');
 
   countTo(els.vSharpe, sharpe, (v) => num(v, 2));
-  els.fSharpe.textContent =
-    sharpe >= 0.6 ? 'well paid for the risk taken' :
-    sharpe >= 0.35 ? 'ordinary for a mixed portfolio' :
-    sharpe >= 0.15 ? 'thin compensation' : 'you are taking risk for very little';
+  els.fSharpe.textContent = t(
+    sharpe >= 0.6 ? 'allocation.sharpeGood' : sharpe >= 0.35 ? 'allocation.sharpeOk' :
+    sharpe >= 0.15 ? 'allocation.sharpeThin' : 'allocation.sharpeBad');
 
   countTo(els.vDd, st.bad, (v) => pct(v, 1));
-  els.fDd.textContent = `one year in twenty is worse than this`;
+  els.fDd.textContent = t('allocation.fDd');
 
   // --- frontier
   const bestAtVol = fr.env.reduce((best, p) =>
@@ -148,31 +152,31 @@ function render(s) {
     points: [
       ...fr.cloud.filter((_, i) => i % 6 === 0).map((c) => ({ x: c.x, y: c.y, color: '--ink-500' })),
       ...s.assets.map((a, i) => ({
-        x: a.v, y: a.r, color: PALETTE[i % PALETTE.length], label: a.name,
-        title: `${a.name}: ${pct(a.r, 1)} return, ${pct(a.v, 1)} volatility`,
+        x: a.v, y: a.r, color: PALETTE[i % PALETTE.length], label: nameOf(a),
+        title: `${nameOf(a)}: ${pct(a.r, 1)} / ${pct(a.v, 1)}`,
       })),
-      { x: st.vol, y: st.ret, color: '--accent', big: true, label: 'your mix',
-        title: `Your mix: ${pct(st.ret, 2)} return, ${pct(st.vol, 1)} volatility` },
+      { x: st.vol, y: st.ret, color: '--accent', big: true, label: t('allocation.legendYours'),
+        title: `${t('allocation.legendYours')}: ${pct(st.ret, 2)} / ${pct(st.vol, 1)}` },
     ],
     frontier: fr.env,
-    x: { format: (v) => pct(v, 0), label: 'Volatility' },
-    y: { format: (v) => pct(v, 0), label: 'Expected return' },
+    x: { format: (v) => pct(v, 0), label: t('allocation.xVol') },
+    y: { format: (v) => pct(v, 0), label: t('allocation.yRet') },
     height: 400,
-    label: 'Expected return against volatility for your mix and alternatives',
+    label: t('allocation.frontTitle'),
   });
 
   $('#frontClaim').textContent = efficient
-    ? `At ${pct(st.vol, 1)} volatility, no other mix of these same classes does meaningfully better. Any further gain has to come from taking more risk, not from rearranging.`
-    : `Another mix of these same classes reaches ${pct(bestAtVol.y, 2)} at the same ${pct(st.vol, 1)} volatility. You are giving up ${pct(shortfall, 2)} a year for the arrangement you have chosen.`;
+    ? t('allocation.frontEfficient', { vol: pct(st.vol, 1) })
+    : t('allocation.frontShort', { best: pct(bestAtVol.y, 2), vol: pct(st.vol, 1), gap: pct(shortfall, 2) });
 
   // --- mix
   donut($('#donut'), s.assets.map((a, i) => ({
-    label: a.name, value: Math.max(0.0001, a.w), color: PALETTE[i % PALETTE.length],
-  })), { centerTop: pct(st.ret, 1), centerBottom: 'expected', label: 'Asset mix' });
+    label: nameOf(a), value: Math.max(0.0001, a.w), color: PALETTE[i % PALETTE.length],
+  })), { centerTop: pct(st.ret, 1), centerBottom: t('allocation.mixCenter'), label: t('allocation.mixTitle') });
 
   $('#mixList').innerHTML = s.assets.map((a, i) => `
     <div class="alloc-row">
-      <span class="alloc-row__name"><span class="alloc-row__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(a.name)}</span>
+      <span class="alloc-row__name"><span class="alloc-row__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(nameOf(a))}</span>
       <span class="num" style="font-size:var(--t-sm)">${pct(st.w[i] * 100, 1)}</span>
       <span class="alloc-row__bar"><span class="bar-track"><span class="bar-fill" style="width:${st.w[i] * 100}%;background:var(${PALETTE[i % PALETTE.length]})"></span></span></span>
     </div>`).join('');
@@ -183,17 +187,17 @@ function render(s) {
     const over = cPct - wPct;
     return `<div style="margin-bottom:var(--s5)">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--s3);margin-bottom:7px">
-        <span class="alloc-row__name"><span class="alloc-row__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(a.name)}</span>
+        <span class="alloc-row__name"><span class="alloc-row__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(nameOf(a))}</span>
         <span class="delta ${over > 1 ? 'delta--neg' : over < -1 ? 'delta--pos' : ''}">${over > 0 ? '+' : ''}${pct(over, 1)}</span>
       </div>
       <div style="display:grid;gap:5px">
         <div style="display:flex;align-items:center;gap:var(--s3)">
-          <span style="font-size:var(--t-xs);color:var(--ink-muted);width:5.5rem">weight</span>
+          <span style="font-size:var(--t-xs);color:var(--ink-muted);width:5.5rem">${t('allocation.cWeight')}</span>
           <span class="bar-track" style="flex:1"><span class="bar-fill" style="width:${wPct}%;background:var(--ink-500)"></span></span>
           <span class="num" style="font-size:var(--t-xs);width:3.5rem;text-align:right">${pct(wPct, 0)}</span>
         </div>
         <div style="display:flex;align-items:center;gap:var(--s3)">
-          <span style="font-size:var(--t-xs);color:var(--ink-muted);width:5.5rem">of the risk</span>
+          <span style="font-size:var(--t-xs);color:var(--ink-muted);width:5.5rem">${t('allocation.cRisk')}</span>
           <span class="bar-track" style="flex:1"><span class="bar-fill" style="width:${clamp(cPct, 0, 100)}%;background:var(${PALETTE[i % PALETTE.length]})"></span></span>
           <span class="num" style="font-size:var(--t-xs);width:3.5rem;text-align:right">${pct(cPct, 0)}</span>
         </div>
@@ -212,18 +216,18 @@ function render(s) {
   lo[0] = 100; hi[0] = 100;
 
   lineChart($('#range'), {
-    series: [{ key: 'mid', label: 'Expected path', values: mid, color: '--accent' }],
+    series: [{ key: 'mid', label: t('allocation.legendExpected'), values: mid, color: '--accent' }],
     band: { lo, hi, color: '--accent', opacity: 0.12 },
-    x: { values: yrs, format: (v) => (v === 0 ? 'now' : 'yr ' + v), readoutLabel: 'Year' },
+    x: { values: yrs, format: yearLabel, readoutLabel: t('common.year') },
     y: { format: (v) => num(v, 0) },
     height: 300,
     readout: $('#readout'),
-    readout_empty: 'Hover to read the expected value of 100 invested today',
-    table: { caption: 'Growth of 100 by year', xLabel: 'Year' },
+    readout_empty: t('allocation.rangeHover'),
+    table: { caption: t('allocation.rangeTitle'), xLabel: t('common.year') },
   });
   $('#legend2').innerHTML =
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>Expected</span>' +
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--accent);opacity:.35;height:8px;border-radius:2px"></span>Middle 80% of outcomes</span>';
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>${t('allocation.legendExpected')}</span>` +
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--accent);opacity:.35;height:8px;border-radius:2px"></span>${t('allocation.legendBand80')}</span>`;
 
   $('#wSum').textContent = pct(st.wSum, 0);
   $('#wSum').style.color = Math.abs(st.wSum - 100) > 0.5 ? 'var(--clay-400)' : '';
@@ -234,7 +238,7 @@ function renderAssets(s) {
   $('#assets').innerHTML = s.assets.map((a, i) => `
     <div class="holding" data-row="${i}">
       <span class="holding__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>
-      <input class="holding__name" value="${escapeHtml(a.name)}" data-k="name" aria-label="Class ${i + 1} name">
+      <input class="holding__name" value="${escapeHtml(nameOf(a))}" data-k="name" aria-label="${escapeHtml(t('allocation.colClass'))} ${i + 1}">
       <input class="holding__num" type="number" value="${a.w}" data-k="w" step="1" min="0" max="100" aria-label="Class ${i + 1} weight percent">
       <input class="holding__num" type="number" value="${a.r}" data-k="r" step="0.1" min="-10" max="30" aria-label="Class ${i + 1} expected return percent">
       <button class="holding__del" type="button" data-del="${i}" aria-label="Remove ${escapeHtml(a.name)}">
@@ -246,7 +250,7 @@ function renderAssets(s) {
     <div class="field" style="margin-bottom:var(--s3)">
       <label class="field__label" for="vol${i}" style="font-size:var(--t-xs);color:var(--ink-muted)">
         <span style="display:inline-flex;align-items:center;gap:6px">
-          <span class="holding__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(a.name)} volatility
+          <span class="holding__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(t('allocation.vol', { name: nameOf(a) }))}
         </span>
       </label>
       <div class="range-row">
@@ -272,9 +276,9 @@ function syncRail(s) {
   set('corr', s.corr); set('rf', s.rf);
   $('#corrOut').textContent = num(s.corr, 2);
   $('#rfOut').textContent = pct(s.rf, 1);
-  $('#corrNote').textContent =
-    s.corr <= 0 ? 'true hedge' : s.corr <= 0.2 ? 'strong diversification' :
-    s.corr <= 0.45 ? 'some diversification' : s.corr <= 0.75 ? 'they move together' : 'one asset in disguise';
+  $('#corrNote').textContent = t(
+    s.corr <= 0 ? 'allocation.corrHedge' : s.corr <= 0.2 ? 'allocation.corrStrong' :
+    s.corr <= 0.45 ? 'allocation.corrSome' : s.corr <= 0.75 ? 'allocation.corrTogether' : 'allocation.corrSame');
   repaint();
 }
 
@@ -300,13 +304,13 @@ function boot() {
     const del = e.target.closest('[data-del]');
     if (!del) return;
     const assets = store.read('assets').filter((_, x) => x !== Number(del.dataset.del));
-    if (assets.length < 2) { toast('Keep at least two classes to have a mix'); return; }
+    if (assets.length < 2) { toast(t('allocation.keepTwo')); return; }
     store.set({ assets });
     renderAssets(store.get());
   });
 
   $('#btnAdd').addEventListener('click', () => {
-    const assets = [...store.read('assets'), { name: 'New class', w: 0, r: 5, v: 10 }];
+    const assets = [...store.read('assets'), { name: '', w: 0, r: 5, v: 10 }];
     store.set({ assets });
     renderAssets(store.get());
     const rows = $('#assets').querySelectorAll('.holding__name');
@@ -317,10 +321,10 @@ function boot() {
   $('#btnNormalise').addEventListener('click', () => {
     const as = store.read('assets');
     const sum = as.reduce((a, x) => a + Math.max(0, x.w), 0);
-    if (!sum) { toast('Give at least one class a weight'); return; }
+    if (!sum) { toast(t('allocation.keepTwo')); return; }
     store.set({ assets: as.map((x) => ({ ...x, w: Number(((Math.max(0, x.w) / sum) * 100).toFixed(1)) })) });
     renderAssets(store.get());
-    toast('Weights now add to 100%');
+    toast(t('profile.normalised'));
   });
 
   $('#presets').addEventListener('click', (e) => {
@@ -337,13 +341,16 @@ function boot() {
   });
   repaint = () => painters.forEach((p) => p());
 
-  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), 'Link copied. It carries your mix.'));
+  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), t('common.copied')));
   $('#btnReset').addEventListener('click', () => { store.reset(); renderAssets(store.get()); });
+
+  mountProfileBridge('allocation', store, { afterAdopt: () => { renderAssets(store.get()); render(store.get()); } });
 
   render(store.get());
   enterWorkbench();
   revealOnScroll();
   window.addEventListener('ledger:theme', () => render(store.get()));
+  window.addEventListener('ledger:locale', () => render(store.get()));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

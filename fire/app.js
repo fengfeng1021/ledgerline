@@ -3,8 +3,10 @@
 
 import {
   money, moneyShort, pct, num, years as fmtYears, setCurrency, curSymbol, CURRENCIES,
-  createStore, bindNumber, bindRange, debounce, copyText, downloadCSV, mountShell, clamp,
+  createStore, bindNumber, bindRange, debounce, copyText, downloadCSV, mountShell, clamp, yearLabel,
 } from '../assets/js/core.js';
+import { t } from '../assets/js/i18n.js';
+import { mountProfileBridge } from '../assets/js/bridge.js';
 import { lineChart, barChart } from '../assets/js/chart.js';
 import { countTo, flash, enterWorkbench, revealOnScroll } from '../assets/js/motion.js';
 
@@ -135,21 +137,21 @@ function render(state) {
   last = { acc, sim, p };
 
   // --- metrics
-  countTo(els.vYears, acc.years ?? NaN, (v) => (isFinite(v) ? fmtYears(v) : 'not on this path'));
+  countTo(els.vYears, acc.years ?? NaN, (v) => (isFinite(v) ? fmtYears(v) : t('fire.mYearsNever')));
   els.vYears.style.fontSize = acc.reached ? '' : '1.15rem';
   els.fYears.textContent = acc.reached
-    ? `saving ${money(acc.save)} a year, ${pct(acc.save / Math.max(1, p.income) * 100, 0)} of take-home`
-    : `spending is ${money(p.spend - p.income)} above income, so the balance never reaches the target`;
+    ? t('fire.fYears', { save: money(acc.save), pct: pct(acc.save / Math.max(1, p.income) * 100, 0) })
+    : t('fire.fYearsNever', { gap: money(p.spend - p.income) });
 
   countTo(els.vTarget, acc.target, money);
-  els.fTarget.textContent = `${num(100 / p.swr, 1)}x yearly spending at a ${pct(p.swr)} withdrawal rate`;
+  els.fTarget.textContent = t('fire.fTarget', { x: num(100 / p.swr, 1), swr: pct(p.swr) });
 
   countTo(els.vOdds, sim.successRate, (v) => pct(v, 0));
   els.vOdds.className = 'metric__value num ' +
     (sim.successRate >= 90 ? 'metric__value--pos' : sim.successRate >= 75 ? 'metric__value--accent' : 'metric__value--neg');
   els.fOdds.textContent = sim.depletionCount
-    ? `${sim.depletionCount} of ${RUNS} runs ran out, typically around year ${sim.medianDepletion}`
-    : `no run ran out inside ${p.horizon} years`;
+    ? t('fire.fOddsFail', { fail: sim.depletionCount, n: RUNS, year: sim.medianDepletion })
+    : t('fire.fOddsOk', { years: p.horizon });
 
   // Crossing 90% or 75% is a real change of situation, so it gets a flash.
   const band = sim.successRate >= 90 ? 'safe' : sim.successRate >= 75 ? 'tight' : 'fragile';
@@ -157,7 +159,7 @@ function render(state) {
   lastOddsBand = band;
 
   countTo(els.vMonthly, (acc.target * p.swr) / 100 / 12, money);
-  els.fMonthly.textContent = `before tax, rising with inflation`;
+  els.fMonthly.textContent = t('fire.fMonthly');
 
   // --- main chart: accumulation then the simulated withdrawal fan
   const accYears = acc.path.length - 1;
@@ -170,23 +172,23 @@ function render(state) {
 
   lineChart($('#chart'), {
     series: [
-      { key: 'mid', label: 'Median outcome', values: median, color: '--accent' },
-      { key: 'target', label: 'Target', values: targetLine, color: '--slate-400', dashed: true, width: 1.5, endLabel: 'target' },
+      { key: 'mid', label: t('fire.legendMedian'), values: median, color: '--accent' },
+      { key: 'target', label: t('fire.legendTarget'), values: targetLine, color: '--slate-400', dashed: true, width: 1.5, endLabel: t('fire.legendTarget') },
     ],
     band: { lo, hi, color: '--accent', opacity: 0.12 },
-    x: { values: xs, format: (v) => (v === 0 ? 'now' : 'yr ' + v), readoutLabel: 'Year' },
+    x: { values: xs, format: yearLabel, readoutLabel: t('common.year') },
     y: { format: moneyShort },
-    markers: acc.reached ? [{ x: accYears, label: 'stop working' }] : [],
+    markers: acc.reached ? [{ x: accYears, label: t('fire.markerStop') }] : [],
     height: 400,
     readout: $('#readout'),
-    readout_empty: 'Hover to read the median path and the target at any year',
-    table: { caption: 'Median portfolio value by year', xLabel: 'Year' },
+    readout_empty: t('common.hoverChart'),
+    table: { caption: t('fire.pathTitle'), xLabel: t('common.year') },
   });
 
   $('#legend').innerHTML =
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>Median</span>' +
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--accent);opacity:.35;height:8px;border-radius:2px"></span>Middle 80% of runs</span>' +
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--slate-400)"></span>Target</span>';
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>${t('fire.legendMedian')}</span>` +
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--accent);opacity:.35;height:8px;border-radius:2px"></span>${t('fire.legendBand')}</span>` +
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--slate-400)"></span>${t('fire.legendTarget')}</span>`;
 
   // --- withdrawal-rate sensitivity: the honest version of the 4% rule
   const rates = [3, 3.5, 4, 4.5, 5, 5.5];
@@ -197,36 +199,35 @@ function render(state) {
   });
   barChart($('#swrChart'), {
     series: [{
-      key: 'odds', label: 'Survives', values: odds,
+      key: 'odds', label: t('fire.oddsSurvive'), values: odds,
       color: '--accent',
     }],
     x: { values: rates, format: (v) => pct(v, v % 1 ? 1 : 0) },
     y: { format: (v) => pct(v, 0), max: 100 },
     stacked: false,
     height: 220,
-    table: { caption: 'Survival rate by withdrawal rate', xLabel: 'Withdrawal rate' },
+    table: { caption: t('fire.oddsTitle'), xLabel: t('fire.swr') },
   });
   const safest = rates[odds.findIndex((o) => o >= 90)];
   $('#swrClaim').textContent = safest != null
-    ? `At these assumptions, ${pct(safest, safest % 1 ? 1 : 0)} is the highest rate that still clears 90%. You are using ${pct(p.swr)}.`
-    : `No rate on this scale clears 90%. Either the horizon is long, the volatility is high, or the return is thin.`;
-  $('#simCount').textContent = `${RUNS} runs each`;
+    ? t('fire.swrClaim', { rate: pct(safest, safest % 1 ? 1 : 0), yours: pct(p.swr) })
+    : t('fire.swrClaimNone');
+  $('#simCount').textContent = t('fire.runsEach', { n: RUNS });
 
   // --- risk dials
   const yearsOfSpend = startBal / Math.max(1, p.spend);
   const firstFive = sim.p10[Math.min(5, sim.p10.length - 1)];
   $('#dials').innerHTML = [
-    { k: 'Sequence risk', v: pct((1 - firstFive / startBal) * 100, 0),
-      note: 'worst-decile drawdown by year 5' },
-    { k: 'Spending covered', v: num(yearsOfSpend, 1) + ' yr', note: 'at the moment you stop, with no growth' },
-    { k: 'Median left over', v: moneyShort(sim.medianEnd), note: `after ${p.horizon} years` },
-    { k: 'Bad-case left over', v: moneyShort(sim.worstEnd), note: '5th percentile ending' },
+    { k: t('fire.dialSeq'), v: pct((1 - firstFive / startBal) * 100, 0), note: t('fire.dialSeqNote') },
+    { k: t('fire.dialCover'), v: fmtYears(yearsOfSpend), note: t('fire.dialCoverNote') },
+    { k: t('fire.dialMedian'), v: moneyShort(sim.medianEnd), note: t('fire.dialMedianNote', { years: p.horizon }) },
+    { k: t('fire.dialWorst'), v: moneyShort(sim.worstEnd), note: t('fire.dialWorstNote') },
   ].map((d) => `<div class="dial"><div class="dial__k">${d.k}</div>
       <div class="dial__v">${d.v}</div><div class="dial__note">${d.note}</div></div>`).join('');
 
   $('#riskNote').textContent = p.cutback > 0
-    ? `Cutting spending ${pct(p.cutback, 0)} after a losing year is doing real work here. Set that slider to zero and watch the odds fall: flexibility is worth more than an extra year of saving.`
-    : `You have set flexibility to zero, so every run spends the same amount after a crash as before one. That is the single harshest assumption in this model.`;
+    ? t('fire.riskNote', { pct: pct(p.cutback, 0) })
+    : t('fire.riskNoteZero');
 
   // --- table
   const rows = xs.map((y) => {
@@ -234,7 +235,7 @@ function render(state) {
     const i = y - accYears;
     return `<tr${y === accYears && acc.reached ? ' class="is-marker"' : ''}>
       <td>${y}</td>
-      <td class="c-mute">${inAccum ? 'saving' : 'withdrawing'}</td>
+      <td class="c-mute">${inAccum ? t('fire.phaseSaving') : t('fire.phaseDrawing')}</td>
       <td>${money(median[y])}</td>
       <td class="${inAccum ? 'c-mute' : 'c-neg'}">${money(lo[y])}</td>
       <td class="${inAccum ? 'c-mute' : 'c-pos'}">${money(hi[y])}</td>
@@ -258,12 +259,14 @@ function syncRail(s) {
   $('#horizonOut').textContent = s.horizon;
   $('#cutbackOut').textContent = pct(s.cutback, 0);
   const sr = s.income > 0 ? ((s.income - s.spend) / s.income) * 100 : 0;
-  $('#savingRate').textContent = sr >= 0 ? `saving ${pct(sr, 0)}` : `overspending by ${pct(-sr, 0)}`;
-  $('#volNote').textContent =
-    s.vol <= 6 ? 'bonds and cash' : s.vol <= 11 ? 'conservative mix' :
-    s.vol <= 16 ? 'balanced' : s.vol <= 21 ? 'all equity' : 'concentrated';
-  $('#swrNote').textContent =
-    s.swr <= 3.2 ? 'very cautious' : s.swr <= 4.1 ? '4% rule' : s.swr <= 5 ? 'aggressive' : 'spend it down';
+  $('#savingRate').textContent = sr >= 0
+    ? t('fire.savingRate', { pct: pct(sr, 0) }) : t('fire.overspend', { pct: pct(-sr, 0) });
+  $('#volNote').textContent = t(
+    s.vol <= 6 ? 'fire.volBonds' : s.vol <= 11 ? 'fire.volCons' :
+    s.vol <= 16 ? 'fire.volBalanced' : s.vol <= 21 ? 'fire.volEquity' : 'fire.volConc');
+  $('#swrNote').textContent = t(
+    s.swr <= 3.2 ? 'fire.swrVeryCautious' : s.swr <= 4.1 ? 'fire.swrRule' :
+    s.swr <= 5 ? 'fire.swrAggressive' : 'fire.swrSpend');
   document.querySelectorAll('[data-cur-symbol]').forEach((n) => { n.textContent = curSymbol(); });
   $('#curName').textContent = s.cur;
   repaint();
@@ -299,15 +302,15 @@ function boot() {
     store.set({ cur: b.dataset.cur });
   });
 
-  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), 'Link copied. It carries your numbers.'));
+  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), t('common.copied')));
   $('#btnReset').addEventListener('click', () => store.reset());
   $('#btnCsv').addEventListener('click', () => {
     const { acc, sim, p } = last;
     const accYears = acc.path.length - 1;
-    const rows = [['Year', 'Phase', 'Median', '10th percentile', '90th percentile', 'Spending']];
+    const rows = [[t('common.year'), t('fire.thPhase'), t('fire.thMedian'), t('fire.thUnlucky'), t('fire.thLucky'), t('fire.thSpend')]];
     for (let y = 0; y <= accYears + p.horizon; y++) {
       const inA = y <= accYears, i = y - accYears;
-      rows.push([y, inA ? 'saving' : 'withdrawing',
+      rows.push([y, inA ? t('fire.phaseSaving') : t('fire.phaseDrawing'),
         Math.round(inA ? acc.path[y] : sim.p50[i]),
         Math.round(inA ? acc.path[y] : sim.p10[i]),
         Math.round(inA ? acc.path[y] : sim.p90[i]),
@@ -316,10 +319,13 @@ function boot() {
     downloadCSV('ledgerline-fire.csv', rows);
   });
 
+  mountProfileBridge('fire', store, { afterAdopt: () => render(store.get()) });
+
   render(store.get());
   enterWorkbench();
   revealOnScroll();
   window.addEventListener('ledger:theme', () => render(store.get()));
+  window.addEventListener('ledger:locale', () => render(store.get()));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

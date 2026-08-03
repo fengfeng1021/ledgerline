@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh-TW" class="no-js" data-title-key="mortgage.title" data-desc-key="mortgage.desc">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mortgage: what overpaying actually saves | Ledgerline</title>
-<meta name="description" content="Interest curve, payoff date, and the break-even against investing the same money instead. The comparison your bank does not show you.">
+<title>房貸：多還一點到底省多少 | 帳線</title>
+<meta name="description" content="利息曲線、提前還清的時間，以及跟「把同一筆錢拿去投資」的損益比較。這是銀行不會給你看的那張表。">
 <meta name="color-scheme" content="dark light">
 <meta property="og:title" content="Mortgage | Ledgerline">
 <meta property="og:description" content="Overpayment savings against investing the same money, side by side.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/tokens.css">
 <link rel="stylesheet" href="../assets/css/ui.css">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
@@ -19,22 +19,22 @@
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
-<a class="skip-link" href="#stage">Skip to results</a>
+<a class="skip-link" href="#stage" data-i18n="skip.results">跳到結果</a>
 <header class="nav"></header>
 
 <div class="shell">
 <div class="workbench">
 
-  <aside class="rail" aria-label="Loan terms">
+  <aside class="rail"><div id="profileLink"></div>
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">The loan</h2>
+        <h2 class="group__title" data-i18n="mortgage.gLoan">這筆貸款</h2>
         <span class="group__aside" id="curName">TWD</span>
       </div>
 
       <div class="field">
-        <label class="field__label" for="principal">Amount borrowed</label>
+        <label class="field__label" for="principal"><span data-i18n="mortgage.principal">貸款金額</span></label>
         <div class="input-wrap" data-num="principal">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="principal" type="number" inputmode="numeric" value="12000000" min="0" step="500000">
@@ -46,7 +46,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="rate">Interest rate</label>
+        <label class="field__label" for="rate"><span data-i18n="mortgage.rate">年利率</span></label>
         <div class="range-row">
           <input class="range" id="rate" type="range" min="0.5" max="10" step="0.01" value="2.35">
           <output class="range-val" for="rate" id="rateOut">2.35%</output>
@@ -54,7 +54,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="term">Term</label>
+        <label class="field__label" for="term"><span data-i18n="mortgage.term">年限</span></label>
         <div class="range-row">
           <input class="range" id="term" type="range" min="5" max="40" step="1" value="30">
           <output class="range-val" for="term" id="termOut">30</output>
@@ -62,10 +62,8 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="grace">
-          Interest-only period
-          <span class="field__hint">grace years</span>
-        </label>
+        <label class="field__label" for="grace"><span data-i18n="mortgage.grace">寬限期</span>
+          <span class="field__hint"></span></label>
         <div class="range-row">
           <input class="range" id="grace" type="range" min="0" max="10" step="1" value="0">
           <output class="range-val" for="grace" id="graceOut">0</output>
@@ -83,11 +81,11 @@
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Paying it down faster</h2>
+        <h2 class="group__title" data-i18n="mortgage.gFaster">提前還款</h2>
       </div>
 
       <div class="field">
-        <label class="field__label" for="extra">Extra, every month</label>
+        <label class="field__label" for="extra"><span data-i18n="mortgage.extra">每月多還</span></label>
         <div class="input-wrap" data-num="extra">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="extra" type="number" inputmode="numeric" value="5000" min="0" step="1000">
@@ -99,7 +97,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="lump">One-off lump sum</label>
+        <label class="field__label" for="lump"><span data-i18n="mortgage.lump">一次性提前還款</span></label>
         <div class="input-wrap" data-num="lump">
           <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
           <input class="input" id="lump" type="number" inputmode="numeric" value="0" min="0" step="100000">
@@ -111,7 +109,7 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="lumpYear">Paid in year</label>
+        <label class="field__label" for="lumpYear"><span data-i18n="mortgage.lumpYear">在第幾年還</span></label>
         <div class="range-row">
           <input class="range" id="lumpYear" type="range" min="1" max="30" step="1" value="3">
           <output class="range-val" for="lumpYear" id="lumpYearOut">3</output>
@@ -121,14 +119,12 @@
 
     <div class="group">
       <div class="group__head">
-        <h2 class="group__title">Or invest it instead</h2>
+        <h2 class="group__title" data-i18n="mortgage.gAlt">或者拿去投資</h2>
         <span class="group__aside">the real question</span>
       </div>
       <div class="field">
-        <label class="field__label" for="alt">
-          Return if invested
-          <span class="field__hint" id="altNote">after tax</span>
-        </label>
+        <label class="field__label" for="alt"><span data-i18n="mortgage.alt">投資的話能有的報酬</span>
+          <span class="field__hint" id="altNote"></span></label>
         <div class="range-row">
           <input class="range" id="alt" type="range" min="0" max="12" step="0.1" value="5">
           <output class="range-val" for="alt" id="altOut">5.0%</output>
@@ -137,8 +133,8 @@
     </div>
 
     <div class="group">
-      <div class="group__head"><h2 class="group__title">Currency</h2></div>
-      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+      <div class="group__head"><h2 class="group__title" data-i18n="common.currency">幣別</h2></div>
+      <div class="seg" id="curSeg" role="group" data-i18n-attr="aria-label:common.currency">
         <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
         <button type="button" data-cur="USD" aria-pressed="false">USD</button>
         <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
@@ -147,11 +143,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn--ghost" id="btnShare" type="button">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
-        Copy link
-      </button>
-      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+      <button class="btn btn--ghost" id="btnShare" type="button"><span data-i18n="common.copyLink">複製連結</span></button>
+      <button class="btn btn--quiet" id="btnReset" type="button" data-i18n="common.reset">重設</button>
     </div>
   </aside>
 
@@ -159,29 +152,29 @@
 
     <div class="stage__head">
       <div>
-        <h1 class="stage__title">Mortgage</h1>
-        <p class="stage__sub">The payment is the easy number. What matters is the interest curve and whether overpaying beats investing.</p>
+        <h1 class="stage__title" data-i18n="mortgage.h1">房貸</h1>
+        <p class="stage__sub" data-i18n="mortgage.sub">月付金是最簡單的數字。真正重要的是利息曲線，還有多還一點到底划不划算。</p>
       </div>
     </div>
 
     <div class="metrics" id="metrics">
       <div class="metric" id="mPay">
-        <div class="metric__label">Monthly payment</div>
+        <div class="metric__label" data-i18n="mortgage.mPay">每月要繳</div>
         <div class="metric__value num" id="vPay">-</div>
         <div class="metric__foot" id="fPay">&nbsp;</div>
       </div>
       <div class="metric" id="mInterest">
-        <div class="metric__label">Interest over the life</div>
+        <div class="metric__label" data-i18n="mortgage.mInterest">這輩子付的利息</div>
         <div class="metric__value metric__value--neg num" id="vInterest">-</div>
         <div class="metric__foot" id="fInterest">&nbsp;</div>
       </div>
       <div class="metric" id="mSaved">
-        <div class="metric__label">Overpaying saves</div>
+        <div class="metric__label" data-i18n="mortgage.mSaved">多還省下</div>
         <div class="metric__value metric__value--pos num" id="vSaved">-</div>
         <div class="metric__foot" id="fSaved">&nbsp;</div>
       </div>
       <div class="metric" id="mFree">
-        <div class="metric__label">Debt free in</div>
+        <div class="metric__label" data-i18n="mortgage.mFree">無債時間</div>
         <div class="metric__value metric__value--accent num" id="vFree">-</div>
         <div class="metric__foot" id="fFree">&nbsp;</div>
       </div>
@@ -189,7 +182,7 @@
 
     <section class="panel" style="margin-top:var(--s5)" aria-labelledby="balTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="balTitle">What you still owe</h2>
+        <h2 class="panel__title" id="balTitle" data-i18n="mortgage.balTitle">你還欠多少</h2>
         <div class="legend" id="legend"></div>
       </div>
       <div class="panel__body">
@@ -200,7 +193,7 @@
 
     <div class="split split--even" data-reveal>
       <section class="panel" aria-labelledby="beTitle">
-        <div class="panel__head"><h2 class="panel__title" id="beTitle">Overpay, or invest the same money</h2></div>
+        <div class="panel__head"><h2 class="panel__title" id="beTitle" data-i18n="mortgage.beTitle">提前還款，對上把錢拿去投資</h2></div>
         <div class="panel__body">
           <p class="fee-claim" id="beClaim">-</p>
           <p class="fee-sub" id="beSub">&nbsp;</p>
@@ -210,7 +203,7 @@
 
       <section class="panel" aria-labelledby="mixTitle">
         <div class="panel__head">
-          <h2 class="panel__title" id="mixTitle">Where each payment goes</h2>
+          <h2 class="panel__title" id="mixTitle" data-i18n="mortgage.mixTitle">每一期繳的錢跑去哪</h2>
           <span class="group__aside">interest against principal</span>
         </div>
         <div class="panel__body panel__body--flush">
@@ -221,18 +214,15 @@
 
     <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="tblTitle">
       <div class="panel__head">
-        <h2 class="panel__title" id="tblTitle">Amortisation</h2>
-        <button class="btn btn--quiet" id="btnCsv" type="button">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>
-          Download CSV
-        </button>
+        <h2 class="panel__title" id="tblTitle" data-i18n="mortgage.tblTitle">攤還表</h2>
+        <button class="btn btn--quiet" id="btnCsv" type="button"><span data-i18n="common.csv">下載 CSV</span></button>
       </div>
       <div class="panel__body panel__body--flush">
         <div class="table-scroll" style="max-height:420px">
           <table class="table" id="tbl">
             <thead><tr>
-              <th scope="col">Year</th><th scope="col">Paid</th><th scope="col">To interest</th>
-              <th scope="col">To principal</th><th scope="col">Still owed</th><th scope="col">Owed without extra</th>
+              <th scope="col" data-i18n="common.year">年</th><th scope="col" data-i18n="mortgage.thPaid">繳了</th><th scope="col" data-i18n="mortgage.thToInterest">進利息</th>
+              <th scope="col" data-i18n="mortgage.thToPrincipal">進本金</th><th scope="col" data-i18n="mortgage.thOwed">還欠</th><th scope="col" data-i18n="mortgage.thOwedBase">不多還的話還欠</th>
             </tr></thead>
             <tbody></tbody>
           </table>
@@ -240,11 +230,7 @@
       </div>
     </section>
 
-    <p class="disclosure" style="margin-top:var(--s5)">
-      A fixed rate for the whole term is assumed, which is optimistic for floating-rate loans and wrong after any
-      reset. The investing comparison ignores volatility: a 5% return earned smoothly is not the same risk as 5%
-      earned through a crash, and paying down debt is the only one of the two with a guaranteed outcome.
-    </p>
+    <p class="disclosure" style="margin-top:var(--s5)" data-i18n="mortgage.disclosure"></p>
   </main>
 
 </div>

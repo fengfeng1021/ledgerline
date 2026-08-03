@@ -3,8 +3,10 @@
 
 import {
   money, moneyShort, pct, num, years as fmtYears, setCurrency, curSymbol, CURRENCIES,
-  createStore, bindNumber, bindRange, debounce, copyText, downloadCSV, mountShell, clamp,
+  createStore, bindNumber, bindRange, debounce, copyText, downloadCSV, mountShell, clamp, yearLabel,
 } from '../assets/js/core.js';
+import { t } from '../assets/js/i18n.js';
+import { mountProfileBridge } from '../assets/js/bridge.js';
 import { lineChart } from '../assets/js/chart.js';
 import { countTo, flash, enterWorkbench, revealOnScroll } from '../assets/js/motion.js';
 
@@ -138,22 +140,22 @@ function render(state) {
   const feeVal = showReal ? active.feeCostReal : active.feeCost;
 
   countTo(els.vEnd, endVal, money);
-  els.endMode.textContent = showReal ? "in today's money" : 'nominal';
+  els.endMode.textContent = showReal ? t('compound.mEndReal') : t('compound.mEndNominal');
   els.fEnd.textContent = showReal
-    ? `${money(active.end)} on the statement, worth ${pct((active.endReal / active.end) * 100, 0)} of that after ${pct(activeP.inflation)} inflation`
-    : `${money(active.endReal)} in today's purchasing power`;
+    ? t('compound.fEndReal', { nominal: money(active.end), inf: pct(100 - (active.endReal / active.end) * 100, 0) })
+    : t('compound.fEndNominal', { real: money(active.endReal) });
 
   countTo(els.vIn, inVal, money);
   els.fIn.textContent = showReal
-    ? `${money(active.paidTotal)} of actual cash, deflated to today as you paid it`
-    : `${money(activeP.initial)} to start, then ${money(activeP.monthly)} a month`;
+    ? t('compound.fInReal', { nominal: money(active.paidTotal) })
+    : t('compound.fInNominal', { initial: money(activeP.initial), monthly: money(activeP.monthly) });
 
   countTo(els.vGain, gainVal, money);
   const multiple = inVal > 0 ? endVal / inVal : 0;
-  els.fGain.textContent = `${num(multiple, 2)}x what you put in`;
+  els.fGain.textContent = t('compound.fGain', { x: num(multiple, 2) });
 
   countTo(els.vFee, feeVal, money);
-  els.fFee.textContent = `${pct(active.feeCostPct)} of the balance you would otherwise have`;
+  els.fFee.textContent = t('compound.fFee', { pct: pct(active.feeCostPct) });
 
   // Threshold: gains overtaking contributions is the moment compounding takes over.
   const crossed = active.crossoverYears != null && active.crossoverYears <= activeP.years;
@@ -163,29 +165,29 @@ function render(state) {
   // --- chart
   const yFmt = (v) => moneyShort(v);
   const series = [
-    { key: 'bal', label: showReal ? "Balance, today's money" : 'Balance', values: showReal ? resA.real : resA.balance, color: '--accent', area: true, areaOpacity: 0.1 },
-    { key: 'paid', label: 'Contributions', values: resA.paid, color: '--slate-400' },
+    { key: 'bal', label: showReal ? t('compound.legendReal') : t('compound.legendNominal'), values: showReal ? resA.real : resA.balance, color: '--accent', area: true, areaOpacity: 0.1 },
+    { key: 'paid', label: t('compound.legendPaid'), values: resA.paid, color: '--slate-400' },
   ];
   if (hasB) {
     series.push({
-      key: 'balB', label: 'Plan B', values: showReal ? resB.real : resB.balance,
+      key: 'balB', label: t('compound.planB'), values: showReal ? resB.real : resB.balance,
       color: '--plum-400', dashed: true,
     });
   }
   const markers = [];
   if (resA.crossoverYears != null) {
-    markers.push({ x: Math.round(resA.crossoverYears), label: 'gains overtake contributions' });
+    markers.push({ x: Math.round(resA.crossoverYears), label: t('compound.crossover') });
   }
 
   lineChart($('#chart'), {
     series,
-    x: { values: resA.year, format: (v) => (v === 0 ? 'now' : 'yr ' + v), readoutLabel: 'Year' },
+    x: { values: resA.year, format: yearLabel, readoutLabel: t('compound.thYear') },
     y: { format: yFmt },
     markers,
     height: 380,
     readout: $('#readout'),
-    readout_empty: 'Hover the chart to read any year',
-    table: { caption: 'Projected balance by year', xLabel: 'Year' },
+    readout_empty: t('common.hoverChart'),
+    table: { caption: t('compound.chartTitle'), xLabel: t('compound.thYear') },
   });
 
   $('#legend').innerHTML = series
@@ -196,17 +198,17 @@ function render(state) {
   const feeYears = active.feeCost > 0 && activeP.monthly > 0
     ? active.feeCost / (activeP.monthly * 12) : 0;
   els.feeClaim.innerHTML = activeP.fee <= 0
-    ? `A zero-fee fund keeps <span class="num">${money(endVal)}</span> in your account.`
-    : `A <span class="num">${pct(activeP.fee, 2)}</span> fee costs you <span class="num c-neg">${money(feeVal)}</span>.`;
+    ? t('compound.feeClaimZero', { end: money(endVal) })
+    : t('compound.feeClaim', { fee: pct(activeP.fee, 2), cost: money(feeVal) });
   els.feeSub.textContent = activeP.fee <= 0
-    ? 'Move the fee slider to see what a percentage point actually buys the fund manager.'
-    : `That is ${pct(active.feeCostPct)} of your final balance, or about ${fmtYears(feeYears)} of contributions handed over.`;
+    ? t('compound.feeSubZero')
+    : t('compound.feeSub', { pct: pct(active.feeCostPct), years: fmtYears(feeYears) });
 
   const high = project({ ...activeP, fee: 1.5 });
   const bars = [
-    { label: 'No fee', v: showReal ? active.endNoFeeReal : active.endNoFee, color: '--sage-400' },
-    { label: pct(activeP.fee, 2) + ' fee', v: endVal, color: '--accent' },
-    { label: '1.50% fee', v: showReal ? high.endReal : high.end, color: '--clay-400' },
+    { label: t('compound.barNoFee'), v: showReal ? active.endNoFeeReal : active.endNoFee, color: '--sage-400' },
+    { label: t('compound.barYourFee', { fee: pct(activeP.fee, 2) }), v: endVal, color: '--accent' },
+    { label: t('compound.barHighFee'), v: showReal ? high.endReal : high.end, color: '--clay-400' },
   ];
   const maxBar = Math.max(...bars.map((b) => b.v)) || 1;
   els.feeBars.innerHTML = bars
@@ -221,10 +223,10 @@ function render(state) {
   els.miles.innerHTML = ms.length
     ? ms.map((m) => `<div class="mile">
         <div class="mile__val num">${money(m.target)}</div>
-        <div class="mile__meta">reached in year <b class="num">${m.year}</b></div>
+        <div class="mile__meta">${t('compound.mileReached', { year: m.year })}</div>
         <div class="bar-track" style="grid-column:1/-1;margin-top:8px"><div class="bar-fill" style="width:${clamp(m.share * 100, 2, 100)}%"></div></div>
       </div>`).join('')
-    : '<div class="empty"><p class="empty__title">No milestone yet</p><p>Raise the contribution or extend the horizon and the first round number will appear here.</p></div>';
+    : `<div class="empty"><p class="empty__title">${t('compound.mileEmpty')}</p><p>${t('compound.mileEmptySub')}</p></div>`;
 
   // --- table
   const rows = resA.year.map((y, i) =>
@@ -239,7 +241,7 @@ function render(state) {
   $('#tbl tbody').innerHTML = rows;
 
   // --- scenario chip
-  $('#chipBText').textContent = hasB ? 'Plan B' : 'Compare';
+  $('#chipBText').textContent = hasB ? t('compound.planB') : t('compound.compare');
   $('#chipA').setAttribute('aria-pressed', String(state.scenario === 'A' || !hasB));
   $('#chipB').setAttribute('aria-pressed', String(state.scenario === 'B' && hasB));
 
@@ -258,10 +260,10 @@ function syncRailToScenario(state) {
   $('#yearsOut').textContent = p.years;
   $('#feeOut').textContent = pct(p.fee, 2);
   $('#inflationOut').textContent = pct(p.inflation, 1);
-  $('#annualEq').textContent = money(p.monthly * 12) + ' / yr';
-  $('#feePreset').textContent =
-    p.fee <= 0.12 ? 'broad index ETF' : p.fee <= 0.4 ? 'index fund' :
-    p.fee <= 0.9 ? 'active fund' : p.fee <= 1.6 ? 'advisor + fund' : 'high cost';
+  $('#annualEq').textContent = t('compound.annualEq', { v: money(p.monthly * 12) });
+  $('#feePreset').textContent = t(
+    p.fee <= 0.12 ? 'compound.presetIndex' : p.fee <= 0.4 ? 'compound.presetFund' :
+    p.fee <= 0.9 ? 'compound.presetActive' : p.fee <= 1.6 ? 'compound.presetAdvisor' : 'compound.presetHigh');
   document.querySelectorAll('[data-cur-symbol]').forEach((n) => { n.textContent = curSymbol(); });
   $('#curName').textContent = state.cur;
   $('#realToggle').setAttribute('aria-checked', String(state.real));
@@ -329,12 +331,12 @@ function boot() {
     }
   });
 
-  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), 'Link copied. It carries your numbers.'));
+  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), t('common.copied')));
   $('#btnReset').addEventListener('click', () => { store.reset(); });
 
   $('#btnCsv').addEventListener('click', () => {
     const { resA } = lastResult;
-    const rows = [['Year', 'Contributed', 'Balance', 'Gain', 'Fees paid', "Today's money"]];
+    const rows = [[t('compound.thYear'), t('compound.thPaid'), t('compound.thBalance'), t('compound.thGain'), t('compound.thFees'), t('compound.thReal')]];
     resA.year.forEach((y, i) => rows.push([
       y, Math.round(resA.paid[i]), Math.round(resA.balance[i]),
       Math.round(resA.gain[i]), Math.round(resA.fees[i]), Math.round(resA.real[i]),
@@ -342,10 +344,13 @@ function boot() {
     downloadCSV('ledgerline-compound.csv', rows);
   });
 
+  mountProfileBridge('compound', store, { afterAdopt: () => render(store.get()) });
+
   render(store.get());
   enterWorkbench();
   revealOnScroll();
   window.addEventListener('ledger:theme', () => render(store.get()));
+  window.addEventListener('ledger:locale', () => render(store.get()));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

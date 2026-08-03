@@ -1,9 +1,27 @@
 # Ledgerline
 
-Six financial models, each given a real interface. No accounts, no uploads, no telemetry.
-Every calculation runs in the visitor's browser.
+One financial file that stays in your browser, and six models that read it.
+Traditional Chinese and English, switched from the browser locale.
+No accounts, no uploads, no telemetry.
 
 **Live: https://fengfeng1021.github.io/ledgerline/**
+
+## The point
+
+Enter your holdings, cash, loans and assumptions **once**, in
+[My finances](profile/). All six tools then read the same numbers, so you never
+type the same thing in six places and never get six contradictory answers.
+
+That page also holds the two things a calculator cannot give you:
+
+- **A net worth timeline.** Save a snapshot whenever you update the figures.
+  Two points make a line; twelve make a habit.
+- **A decision log.** Why you moved bonds from 30% to 40%, written down at the
+  time. You will not remember in six months, and that is when it matters.
+
+It also produces a **short action list** from the state of the file: a holding
+outside its drift band, a dividend landing this month, an emergency fund thinner
+than three months of spending.
 
 ## The tools
 

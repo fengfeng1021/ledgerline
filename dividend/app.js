@@ -2,14 +2,16 @@
 
 import {
   money, moneyShort, pct, num, years as fmtYears, setCurrency, curSymbol, CURRENCIES,
-  createStore, bindNumber, bindRange, debounce, copyText, mountShell, clamp, toast,
+  createStore, bindNumber, bindRange, debounce, copyText, mountShell, clamp, toast, yearLabel,
 } from '../assets/js/core.js';
+import { t } from '../assets/js/i18n.js';
+import { mountProfileBridge } from '../assets/js/bridge.js';
 import { lineChart, donut } from '../assets/js/chart.js';
 import { countTo, flash, enterWorkbench, revealOnScroll } from '../assets/js/motion.js';
+import { monthNames } from '../assets/js/i18n.js';
 
 const PALETTE = ['--accent', '--sage-400', '--slate-400', '--plum-400', '--clay-400', '--amber-600'];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const FREQ = { 12: 'Monthly', 4: 'Quarterly', 2: 'Twice a year', 1: 'Once a year' };
+const FREQ_KEYS = [12, 4, 2, 1];
 
 const DEFAULTS = {
   holdings: [
@@ -119,69 +121,69 @@ function render(s) {
   last = { s, a };
 
   countTo(els.vYear, a.annualNet, money);
-  els.fYear.textContent = `${money(a.annualNet / 12)} a month on average, ${pct(a.blended * 100, 2)} blended yield`;
+  els.fYear.textContent = t('dividend.fYear', { monthly: money(a.annualNet / 12), yield: pct(a.blended * 100, 2) });
 
   const mx = Math.max(...a.byMonth), mn = Math.min(...a.byMonth);
   countTo(els.vMonth, mx, money);
   els.fMonth.textContent = mn === 0
-    ? `${a.byMonth.filter((v) => v === 0).length} months pay nothing at all`
-    : `against ${money(mn)} in the quietest month`;
+    ? t('dividend.fMonthZero', { n: a.byMonth.filter((v) => v === 0).length })
+    : t('dividend.fMonth', { min: money(mn) });
 
-  countTo(els.vCover, a.coverYear ?? NaN, (v) => (isFinite(v) ? (v === 0 ? 'already' : fmtYears(v)) : 'not within horizon'));
+  countTo(els.vCover, a.coverYear ?? NaN, (v) => (isFinite(v) ? (v === 0 ? t('dividend.mCoverNow') : fmtYears(v)) : t('dividend.mCoverNever')));
   els.vCover.style.fontSize = a.coverYear == null ? '1.15rem' : '';
   els.vCover.className = 'metric__value num ' + (a.coverYear != null ? 'metric__value--pos' : '');
   els.fCover.textContent = a.coverYear != null
-    ? `income passes ${money(s.spend)} a month, both rising`
-    : `income reaches ${money(a.incomeNet[s.horizon] / 12)} a month by year ${s.horizon}`;
+    ? t('dividend.fCover', { spend: money(s.spend) })
+    : t('dividend.fCoverNever', { monthly: money(a.incomeNet[s.horizon] / 12), years: s.horizon });
 
   const covered = a.coverYear != null;
   if (lastCovered !== null && covered !== lastCovered) flash(els.mCover);
   lastCovered = covered;
 
   countTo(els.vYoc, a.yocLater, (v) => pct(v, 1));
-  els.fYoc.textContent = `on the ${money(a.invested)} invested today, in year ${s.horizon}`;
+  els.fYoc.textContent = t('dividend.fYoc', { invested: money(a.invested), years: s.horizon });
 
   // --- calendar
   const peak = mx;
-  $('#cal').innerHTML = MONTHS.map((m, i) => {
+  $('#cal').innerHTML = monthNames('short').map((m, i) => {
     const v = a.byMonth[i];
     const names = a.namesByMonth[i];
     return `<div class="cal__cell${v === 0 ? ' cal__cell--zero' : ''}${v === peak && v > 0 ? ' cal__cell--peak' : ''}">
       <span class="cal__month">${m}</span>
       <span class="cal__amt">${v > 0 ? money(v) : '-'}</span>
-      <span class="cal__names">${names.length ? names.map(escapeHtml).join(', ') : 'nothing due'}</span>
+      <span class="cal__names">${names.length ? names.map(escapeHtml).join('、') : t('dividend.calNothing')}</span>
       ${v > 0 ? `<span class="cal__spark" style="width:${(v / peak) * 100}%"></span>` : ''}
     </div>`;
   }).join('');
-  $('#calNote').textContent = `after ${pct(s.tax, 0)} tax`;
+  $('#calNote').textContent = t('dividend.calAfterTax', { tax: pct(s.tax, 0) });
 
   // --- income against bills
   lineChart($('#chart'), {
     series: [
-      { key: 'inc', label: 'Dividend income', values: a.incomeNet, color: '--accent', area: true, areaOpacity: 0.1 },
-      { key: 'bills', label: 'Spending', values: a.billsLine, color: '--clay-400', dashed: true, width: 1.5 },
+      { key: 'inc', label: t('dividend.legendIncome'), values: a.incomeNet, color: '--accent', area: true, areaOpacity: 0.1 },
+      { key: 'bills', label: t('dividend.legendBills'), values: a.billsLine, color: '--clay-400', dashed: true, width: 1.5 },
     ],
-    x: { values: a.yrs, format: (v) => (v === 0 ? 'now' : 'yr ' + v), readoutLabel: 'Year' },
+    x: { values: a.yrs, format: yearLabel, readoutLabel: t('common.year') },
     y: { format: moneyShort },
-    markers: a.coverYear != null ? [{ x: a.coverYear, label: 'income covers spending' }] : [],
+    markers: a.coverYear != null ? [{ x: a.coverYear, label: t('dividend.markerCover') }] : [],
     height: 340,
     readout: $('#readout'),
-    readout_empty: 'Hover to compare income and spending in any year',
-    table: { caption: 'Dividend income against spending by year', xLabel: 'Year' },
+    readout_empty: t('common.hoverChart'),
+    table: { caption: t('dividend.growTitle'), xLabel: t('common.year') },
   });
   $('#legend').innerHTML =
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>Income, after tax</span>' +
-    '<span class="legend__item"><span class="legend__swatch" style="background:var(--clay-400)"></span>Spending, with inflation</span>';
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>${t('dividend.legendIncome')}</span>` +
+    `<span class="legend__item"><span class="legend__swatch" style="background:var(--clay-400)"></span>${t('dividend.legendBills')}</span>`;
 
   // --- reinvest argument
   const gap = a.withReinvest.endIncome - a.noReinvest.endIncome;
   els.riClaim.innerHTML = s.reinvest
-    ? `Reinvesting buys <span class="num c-pos">${money(gap)}</span> more income a year by year ${s.horizon}.`
-    : `Spending the dividends costs <span class="num c-neg">${money(gap)}</span> of yearly income by year ${s.horizon}.`;
-  els.riSub.textContent = `Taking the cash gives you ${money(a.noReinvest.totalCash)} to spend along the way. Reinvesting gives that up for a larger, growing income later. Neither is wrong; they answer different questions.`;
+    ? t('dividend.riClaimOn', { gap: money(gap), years: s.horizon })
+    : t('dividend.riClaimOff', { gap: money(gap), years: s.horizon });
+  els.riSub.textContent = t('dividend.riSub', { cash: money(a.noReinvest.totalCash) });
   const bars = [
-    { label: `Reinvested, income in year ${s.horizon}`, v: a.withReinvest.endIncome, color: '--sage-400' },
-    { label: `Spent, income in year ${s.horizon}`, v: a.noReinvest.endIncome, color: '--slate-400' },
+    { label: t('dividend.barReinvest', { years: s.horizon }), v: a.withReinvest.endIncome, color: '--sage-400' },
+    { label: t('dividend.barSpend', { years: s.horizon }), v: a.noReinvest.endIncome, color: '--slate-400' },
   ];
   const bmx = Math.max(...bars.map((b) => b.v), 1);
   els.riBars.innerHTML = bars.map((b) => `<div class="fee-bar">
@@ -192,8 +194,8 @@ function render(s) {
   // --- concentration
   donut($('#donut'), a.contribByHolding.map((c) => ({ ...c, value: Math.max(0.0001, c.value) })), {
     centerTop: pct(a.topShare, 0),
-    centerBottom: 'from the largest',
-    label: 'Share of income by holding',
+    centerBottom: t('dividend.conCenter'),
+    label: t('dividend.conTitle'),
   });
   $('#conList').innerHTML = a.contribByHolding.map((c) => `
     <div class="alloc-row">
@@ -225,14 +227,14 @@ function renderHoldings(s) {
         <span style="display:inline-flex;align-items:center;gap:6px">
           <span class="holding__dot" style="background:var(${PALETTE[i % PALETTE.length]})"></span>${escapeHtml(h.name)}
         </span>
-        <span>${payMonths(h).map((m) => MONTHS[m]).join(' · ')}</span>
+        <span>${payMonths(h).map((m) => monthNames('short')[m]).join(' ')}</span>
       </span>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)">
         <select class="holding__num" data-sched="${i}" data-k="freq" aria-label="${escapeHtml(h.name)} frequency" style="text-align:left">
-          ${Object.entries(FREQ).map(([f, label]) => `<option value="${f}"${Number(f) === h.freq ? ' selected' : ''}>${label}</option>`).join('')}
+          ${FREQ_KEYS.map((f) => `<option value="${f}"${f === h.freq ? ' selected' : ''}>${t('freq.' + f)}</option>`).join('')}
         </select>
         <select class="holding__num" data-sched="${i}" data-k="start" aria-label="${escapeHtml(h.name)} first pay month" style="text-align:left">
-          ${MONTHS.map((m, mi) => `<option value="${mi + 1}"${mi + 1 === h.start ? ' selected' : ''}>from ${m}</option>`).join('')}
+          ${monthNames('short').map((m, mi) => `<option value="${mi + 1}"${mi + 1 === h.start ? ' selected' : ''}>${t('freq.from', { month: m })}</option>`).join('')}
         </select>
       </div>
     </div>`).join('');
@@ -245,9 +247,9 @@ function syncRail(s) {
   $('#growthOut').textContent = pct(s.growth, 1);
   $('#horizonOut').textContent = s.horizon;
   $('#taxOut').textContent = pct(s.tax, 0);
-  $('#growthNote').textContent =
-    s.growth <= 1 ? 'flat payer' : s.growth <= 4 ? 'modest raiser' :
-    s.growth <= 8 ? 'steady raiser' : s.growth <= 12 ? 'fast grower' : 'unsustainable';
+  $('#growthNote').textContent = t(
+    s.growth <= 1 ? 'dividend.growFlat' : s.growth <= 4 ? 'dividend.growModest' :
+    s.growth <= 8 ? 'dividend.growSteady' : s.growth <= 12 ? 'dividend.growFast' : 'dividend.growUnsust');
   $('#reinvest').setAttribute('aria-checked', String(s.reinvest));
   document.querySelectorAll('[data-cur-symbol]').forEach((n) => { n.textContent = curSymbol(); });
   repaint();
@@ -279,7 +281,7 @@ function boot() {
     const del = e.target.closest('[data-del]');
     if (!del) return;
     const holdings = store.read('holdings').filter((_, x) => x !== Number(del.dataset.del));
-    if (!holdings.length) { toast('Keep at least one holding'); return; }
+    if (!holdings.length) { toast(t('profile.keepOne')); return; }
     store.set({ holdings });
     renderHoldings(store.get());
   });
@@ -294,7 +296,7 @@ function boot() {
   });
 
   $('#btnAdd').addEventListener('click', () => {
-    const holdings = [...store.read('holdings'), { name: 'New holding', value: 0, yield: 3, freq: 4, start: 2 }];
+    const holdings = [...store.read('holdings'), { name: '', value: 0, yield: 3, freq: 4, start: 2 }];
     store.set({ holdings });
     renderHoldings(store.get());
     const rows = $('#holdings').querySelectorAll('.holding__name');
@@ -321,13 +323,16 @@ function boot() {
     store.set({ cur: b.dataset.cur });
   });
 
-  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), 'Link copied. It carries your holdings.'));
+  $('#btnShare').addEventListener('click', () => copyText(store.shareUrl(), t('common.copied')));
   $('#btnReset').addEventListener('click', () => { store.reset(); renderHoldings(store.get()); });
+
+  mountProfileBridge('dividend', store, { afterAdopt: () => { renderHoldings(store.get()); render(store.get()); } });
 
   render(store.get());
   enterWorkbench();
   revealOnScroll();
   window.addEventListener('ledger:theme', () => render(store.get()));
+  window.addEventListener('ledger:locale', () => render(store.get()));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
