@@ -1,4 +1,4 @@
-/* Mortgage — amortisation, overpayment, and the comparison against investing. */
+/* Mortgage - amortisation, overpayment, and the comparison against investing. */
 
 import {
   money, moneyShort, pct, num, years as fmtYears, setCurrency, curSymbol, CURRENCIES,

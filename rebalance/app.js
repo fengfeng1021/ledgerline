@@ -1,4 +1,4 @@
-/* Rebalance — drift, cash-only repair, and the real cost of selling. */
+/* Rebalance - drift, cash-only repair, and the real cost of selling. */
 
 import {
   money, moneyShort, pct, num, setCurrency, curSymbol, CURRENCIES,
@@ -210,7 +210,7 @@ function render(s) {
           <span class="trade__name">${escapeHtml(o.name)}</span><br>
           <span class="trade__sub">${pct(o.finalPct, 1)} now, ${pct(o.afterPct, 1)} after, target ${pct(o.target, 0)}</span>
         </span>
-        <span class="trade__amt ${o.act === 'sell' ? 'c-neg' : o.act === 'buy' ? 'c-pos' : 'c-mute'}">${o.act === 'hold' ? '—' : money(Math.abs(o.delta))}</span>
+        <span class="trade__amt ${o.act === 'sell' ? 'c-neg' : o.act === 'buy' ? 'c-pos' : 'c-mute'}">${o.act === 'hold' ? '-' : money(Math.abs(o.delta))}</span>
       </div>`).join('');
 
   // --- buy-only against buy-and-sell

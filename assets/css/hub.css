@@ -1,4 +1,4 @@
-/* Ledgerline hub — the only Persuade-mode surface in the suite.
+/* Ledgerline hub - the only Persuade-mode surface in the suite.
    Everything here inherits tokens.css and ui.css. */
 
 .hub { max-width: var(--max-w); margin-inline: auto; padding-inline: var(--s5); }

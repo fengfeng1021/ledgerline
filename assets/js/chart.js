@@ -1,4 +1,4 @@
-/* Ledgerline chart engine — hand-built SVG.
+/* Ledgerline chart engine - hand-built SVG.
    No chart library, so no chart library's default look.
    Rules enforced here: max 5 ticks/axis, horizontal grid only, direct end labels,
    crosshair readout instead of floating cards, screen-reader table twin. */

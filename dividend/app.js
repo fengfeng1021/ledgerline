@@ -1,4 +1,4 @@
-/* Dividend — the calendar, after tax, and the month it covers the bills. */
+/* Dividend - the calendar, after tax, and the month it covers the bills. */
 
 import {
   money, moneyShort, pct, num, years as fmtYears, setCurrency, curSymbol, CURRENCIES,
@@ -148,7 +148,7 @@ function render(s) {
     const names = a.namesByMonth[i];
     return `<div class="cal__cell${v === 0 ? ' cal__cell--zero' : ''}${v === peak && v > 0 ? ' cal__cell--peak' : ''}">
       <span class="cal__month">${m}</span>
-      <span class="cal__amt">${v > 0 ? money(v) : '—'}</span>
+      <span class="cal__amt">${v > 0 ? money(v) : '-'}</span>
       <span class="cal__names">${names.length ? names.map(escapeHtml).join(', ') : 'nothing due'}</span>
       ${v > 0 ? `<span class="cal__spark" style="width:${(v / peak) * 100}%"></span>` : ''}
     </div>`;

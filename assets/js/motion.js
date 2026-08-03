@@ -1,4 +1,4 @@
-/* Ledgerline motion — GSAP choreography shared by every surface.
+/* Ledgerline motion - GSAP choreography shared by every surface.
    Every animation here answers "what does this communicate?".
    All of it is gated on prefers-reduced-motion via gsap.matchMedia. */
 

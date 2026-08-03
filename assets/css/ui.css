@@ -1,8 +1,8 @@
-/* Ledgerline — component library
+/* Ledgerline - component library
    Every object in the suite is defined once, here. */
 
 /* ==================================================================
-   1. SHELL  — nav, layout rail, footer
+   1. SHELL  - nav, layout rail, footer
    ================================================================== */
 
 .nav {
@@ -156,7 +156,7 @@
 }
 
 /* ==================================================================
-   3. FIELDS  — the most-touched object in the suite
+   3. FIELDS  - the most-touched object in the suite
    ================================================================== */
 
 .field { display: grid; gap: var(--s2); margin-bottom: var(--s4); }
@@ -343,7 +343,7 @@
 .btn-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
 
 /* ==================================================================
-   5. PANELS + METRICS  — the consequence objects
+   5. PANELS + METRICS  - the consequence objects
    ================================================================== */
 
 .panel {

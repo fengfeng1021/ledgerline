@@ -1,4 +1,4 @@
-/* Ledgerline core — formatting, state, shell behaviour.
+/* Ledgerline core - formatting, state, shell behaviour.
    Shared by every tool. No dependencies. */
 
 /* ---------------------------------------------------------------- format */
@@ -28,14 +28,14 @@ function nf(opts) {
 
 /** Full currency, no decimals. 1234567 -> NT$1,234,567 */
 export const money = (n) =>
-  !isFinite(n) ? '—' : curSymbol() + nf({ maximumFractionDigits: 0 }).format(Math.round(n));
+  !isFinite(n) ? '-' : curSymbol() + nf({ maximumFractionDigits: 0 }).format(Math.round(n));
 
 /** Signed currency. Used for deltas. */
 export const moneySigned = (n) => (n > 0 ? '+' : n < 0 ? '-' : '') + money(Math.abs(n));
 
 /** Compact currency for axis ticks. 1234567 -> NT$1.23M */
 export function moneyShort(n) {
-  if (!isFinite(n)) return '—';
+  if (!isFinite(n)) return '-';
   const a = Math.abs(n), s = n < 0 ? '-' : '';
   if (a >= 1e12) return s + curSymbol() + (a / 1e12).toFixed(2) + 'T';
   if (a >= 1e9)  return s + curSymbol() + (a / 1e9).toFixed(2) + 'B';
@@ -44,14 +44,14 @@ export function moneyShort(n) {
   return s + curSymbol() + Math.round(a);
 }
 
-export const pct = (n, d = 1) => (!isFinite(n) ? '—' : n.toFixed(d) + '%');
+export const pct = (n, d = 1) => (!isFinite(n) ? '-' : n.toFixed(d) + '%');
 export const pctSigned = (n, d = 1) => (n > 0 ? '+' : '') + pct(n, d);
 export const num = (n, d = 0) =>
-  !isFinite(n) ? '—' : nf({ minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
+  !isFinite(n) ? '-' : nf({ minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
 
 /** 18.4 -> "18 yr 5 mo" */
 export function years(y) {
-  if (!isFinite(y) || y < 0) return '—';
+  if (!isFinite(y) || y < 0) return '-';
   const whole = Math.floor(y);
   const mo = Math.round((y - whole) * 12);
   if (mo === 12) return `${whole + 1} yr`;

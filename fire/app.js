@@ -1,4 +1,4 @@
-/* FIRE — accumulation, then withdrawal, with volatility.
+/* FIRE - accumulation, then withdrawal, with volatility.
    The point of this tool is that the second phase is where plans fail. */
 
 import {

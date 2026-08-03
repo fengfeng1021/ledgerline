@@ -1,4 +1,4 @@
-/* Allocation — portfolio risk in numbers, and the frontier your mix sits under. */
+/* Allocation - portfolio risk in numbers, and the frontier your mix sits under. */
 
 import {
   money, moneyShort, pct, num, setCurrency, createStore, bindRange,

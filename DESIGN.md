@@ -1,4 +1,4 @@
-# Ledgerline — Design System
+# Ledgerline - Design System
 
 One visual world across seven surfaces. Every tool inherits this file.
 
@@ -76,9 +76,9 @@ whole suite feel like one instrument.
 
 Documented radius rule, applied everywhere:
 
-- `--r-sm 3px` — inputs, buttons, tags, chips
-- `--r-md 6px` — cards, panels, dropdowns
-- `--r-lg 10px` — sheets, modals, the hub's preview frame
+- `--r-sm 3px` - inputs, buttons, tags, chips
+- `--r-md 6px` - cards, panels, dropdowns
+- `--r-lg 10px` - sheets, modals, the hub's preview frame
 
 Elevation is drawn with a **hairline plus a ground shift**, never a blur shadow. One inset
 top highlight (`inset 0 1px 0 rgb(255 255 255 / .04)`) is the only light source.

@@ -1,4 +1,4 @@
-# Ledgerline — Product context
+# Ledgerline - Product context
 
 ## What it is
 

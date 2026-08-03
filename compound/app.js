@@ -1,4 +1,4 @@
-/* Compound — contributions, fees, inflation.
+/* Compound - contributions, fees, inflation.
    The model runs monthly because contributions arrive monthly. */
 
 import {

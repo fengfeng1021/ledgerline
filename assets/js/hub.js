@@ -1,4 +1,4 @@
-/* Ledgerline hub — the working hero instrument, the scroll story, the tool grid.
+/* Ledgerline hub - the working hero instrument, the scroll story, the tool grid.
    Every number on this page is computed by the same arithmetic the tools use. */
 
 import {
