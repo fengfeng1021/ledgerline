@@ -52,6 +52,131 @@
 }
 .hero__cta { margin-top: var(--s6); display: flex; flex-wrap: wrap; gap: var(--s3); }
 
+/* ---------------------------------------------------- hero dashboard
+   The first thing a visitor sees has to be the product doing its job, not a
+   calculator. This is a live, computed view of a whole financial position:
+   net worth and its curve, the mix, the monthly numbers, and what to do now. */
+
+.dash {
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 var(--highlight), 0 24px 70px rgb(0 0 0 / 0.22);
+}
+:root[data-theme="light"] .dash { box-shadow: inset 0 1px 0 var(--highlight), 0 18px 50px rgb(0 0 0 / 0.09); }
+
+.dash__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s3);
+  padding: 8px var(--s5);
+  border-bottom: 1px solid var(--hairline-soft);
+  background: var(--surface-raised);
+}
+.dash__label {
+  font-family: var(--font-mono); font-size: var(--t-xs);
+  text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);
+}
+.dash__live {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--t-xs); color: var(--ink-muted);
+}
+.dash__pulse {
+  width: 6px; height: 6px; border-radius: 99px; background: var(--sage-400);
+  animation: dashPulse 2.6s ease-in-out infinite;
+}
+@keyframes dashPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .dash__pulse { animation: none; } }
+
+.dash__hero { padding: var(--s4) var(--s5) var(--s2); }
+.dash__k {
+  font-size: var(--t-xs); text-transform: uppercase;
+  letter-spacing: 0.13em; color: var(--ink-muted);
+}
+.dash__net {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--s3);
+  margin-top: 6px;
+}
+.dash__netv {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: clamp(1.8rem, 3.6vw, 2.5rem);
+  letter-spacing: -0.045em; color: var(--ink-strong); line-height: 1;
+}
+.dash__delta {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--t-sm); color: var(--pos);
+}
+.dash__delta span { color: var(--ink-muted); font-family: var(--font-ui); }
+.dash__curve { margin-top: var(--s2); height: 68px; }
+.dash__curve svg { width: 100%; height: 68px; overflow: visible; }
+.dash__curve path.line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+.dash__curve path.area { fill: var(--accent); opacity: 0.1; stroke: none; }
+.dash__curve circle { fill: var(--accent); stroke: var(--surface-panel); stroke-width: 2.5; }
+
+.dash__grid {
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 0; border-top: 1px solid var(--hairline-soft);
+}
+@media (max-width: 560px) { .dash__grid { grid-template-columns: 1fr; } }
+
+.dash__mix {
+  padding: var(--s3) var(--s4);
+  border-right: 1px solid var(--hairline-soft);
+  display: grid; gap: var(--s3);
+  align-content: start;
+}
+@media (max-width: 560px) { .dash__mix { border-right: 0; border-bottom: 1px solid var(--hairline-soft); } }
+.dash__ring { width: 88px; height: 88px; margin-inline: auto; }
+.dash__legend { display: grid; gap: 5px; }
+.dash__legend div {
+  display: flex; align-items: center; gap: 7px;
+  font-size: var(--t-xs); color: var(--ink-second);
+}
+.dash__legend i { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.dash__legend b {
+  margin-left: auto; font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums; font-weight: 500; color: var(--ink-body);
+}
+
+.dash__right { display: grid; grid-template-rows: auto 1fr; }
+.dash__stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.dash__stat { padding: var(--s3) var(--s4); border-right: 1px solid var(--hairline-soft); }
+.dash__stat:last-child { border-right: 0; }
+.dash__statv {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 0.98rem; color: var(--ink-strong); letter-spacing: -0.02em;
+  margin-top: 4px;
+}
+.dash__statv.is-pos { color: var(--pos); }
+
+.dash__todo { padding: var(--s3) var(--s4); display: grid; gap: 8px; align-content: start; }
+.dash__todoh {
+  font-size: var(--t-xs); text-transform: uppercase;
+  letter-spacing: 0.13em; color: var(--ink-muted); margin-bottom: 2px;
+}
+.dash__item {
+  display: grid; grid-template-columns: 3px 1fr; gap: var(--s3);
+  align-items: center;
+  font-size: var(--t-sm); color: var(--ink-body);
+}
+.dash__item i { align-self: stretch; border-radius: 2px; min-height: 15px; }
+.dash__item--warn i { background: var(--clay-400); }
+.dash__item--good i { background: var(--sage-400); }
+.dash__item--info i { background: var(--accent); }
+.dash__item .num { color: var(--ink-strong); }
+
+.dash__foot {
+  padding: 8px var(--s5);
+  border-top: 1px solid var(--hairline-soft);
+  background: var(--surface-raised);
+  font-size: var(--t-xs); color: var(--ink-muted);
+  text-align: center;
+}
+
 /* The hero asset is a working tool, not a picture of one. */
 .instrument {
   background: var(--surface-panel);

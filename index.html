@@ -6,8 +6,8 @@
 <title>帳線：不會粉飾數字的理財模型</title>
 <meta name="description" content="一份留在你自己瀏覽器裡的財務檔案，加上六個把費用、通膨與壞年頭算進去的模型。不用註冊，不上傳，不追蹤。">
 <meta name="color-scheme" content="dark light">
-<meta property="og:title" content="Ledgerline">
-<meta property="og:description" content="Six investing calculators that include the fees, the inflation and the bad years. Everything runs in your browser.">
+<meta property="og:title" content="帳線 Ledgerline：你所有的錢，一個畫面">
+<meta property="og:description" content="一份留在你自己瀏覽器裡的財務檔案，加上六個把費用、通膨與壞年頭算進去的模型。不用註冊，不上傳，不追蹤。">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -41,40 +41,52 @@
       </div>
     </div>
 
-    <!-- A working instrument, not a screenshot of one. -->
-    <div class="instrument pre" id="instrument">
-      <div class="instrument__bar">
-        <span class="instrument__label" data-i18n="hub.instLabel">複利模型，縮小版</span>
-        <span class="instrument__live" id="instLive">7% return · 0.30% fee</span>
+    <!-- The product doing its job, computed live, not a screenshot. -->
+    <div class="dash pre" id="dash">
+      <div class="dash__bar">
+        <span class="dash__label" data-i18n="dash.label">這就是打開後看到的畫面</span>
+        <span class="dash__live"><i class="dash__pulse"></i><span data-i18n="dash.live">範例資料 · 可直接改成你的</span></span>
       </div>
-      <div class="instrument__body">
-        <div class="instrument__figure">
-          <span class="instrument__value num" id="instValue">-</span>
-          <span class="instrument__caption" id="instCaption" data-i18n="hub.instCaption">25 年後，換算成今天的購買力</span>
+
+      <div class="dash__hero">
+        <span class="dash__k" data-i18n="dash.net">淨資產</span>
+        <div class="dash__net">
+          <span class="dash__netv num" id="dashNet">-</span>
+          <span class="dash__delta num" id="dashDelta"></span>
         </div>
-        <div class="instrument__chart chart" id="instChart"></div>
-        <div class="instrument__controls">
-          <div class="field" style="margin:0">
-            <label class="field__label" for="instMonthly">
-              <span data-i18n="hub.instMonthly">每月投入</span>
-              <span class="field__hint num" id="instMonthlyOut"></span>
-            </label>
-            <input class="range" id="instMonthly" type="range" min="1000" max="60000" step="1000" value="10000">
+        <div class="dash__curve" id="dashCurve"></div>
+      </div>
+
+      <div class="dash__grid">
+        <div class="dash__mix">
+          <span class="dash__k" data-i18n="dash.mix">資產配置</span>
+          <div class="dash__ring" id="dashRing"></div>
+          <div class="dash__legend" id="dashLegend"></div>
+        </div>
+
+        <div class="dash__right">
+          <div class="dash__stats">
+            <div class="dash__stat">
+              <span class="dash__k" data-i18n="dash.surplus">每月結餘</span>
+              <div class="dash__statv is-pos num" id="dashSurplus">-</div>
+            </div>
+            <div class="dash__stat">
+              <span class="dash__k" data-i18n="dash.dividend">今年配息</span>
+              <div class="dash__statv num" id="dashDiv">-</div>
+            </div>
+            <div class="dash__stat">
+              <span class="dash__k" data-i18n="dash.runway">不工作能撐</span>
+              <div class="dash__statv num" id="dashRunway">-</div>
+            </div>
           </div>
-          <div class="field" style="margin:0">
-            <label class="field__label" for="instFee">
-              <span data-i18n="hub.instFee">每年內扣費用</span>
-              <span class="field__hint num" id="instFeeOut"></span>
-            </label>
-            <input class="range" id="instFee" type="range" min="0" max="2.5" step="0.05" value="0.3">
+          <div class="dash__todo">
+            <span class="dash__todoh" data-i18n="dash.todo">現在該做的事</span>
+            <div id="dashTodo"></div>
           </div>
         </div>
       </div>
-      <dl class="instrument__foot">
-        <div class="instrument__stat"><dt data-i18n="hub.instIn">你投入</dt><dd class="num" id="instIn">-</dd></div>
-        <div class="instrument__stat"><dt data-i18n="hub.instGain">市場給的</dt><dd class="num" id="instGain">-</dd></div>
-        <div class="instrument__stat"><dt data-i18n="hub.instFeeCost">費用拿走</dt><dd class="num" id="instFeeCost">-</dd></div>
-      </dl>
+
+      <div class="dash__foot" data-i18n="dash.tryIt">打開來改成你自己的數字</div>
     </div>
   </section>
 

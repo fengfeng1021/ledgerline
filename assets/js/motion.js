@@ -174,9 +174,15 @@ export function hubStory({ onProgress } = {}) {
   }
 
   mm.add(
-    { ok: '(prefers-reduced-motion: no-preference)', reduce: '(prefers-reduced-motion: reduce)' },
+    {
+      ok: '(prefers-reduced-motion: no-preference)',
+      // Pinning is desktop-only. Hijacking scroll on a phone is hostile, and the
+      // pin spacer holds a stale width across a rotation, which pushes the page
+      // sideways. matchMedia tears the whole thing down below this breakpoint.
+      wide: '(min-width: 1001px) and (prefers-reduced-motion: no-preference)',
+    },
     (ctx) => {
-      const { ok } = ctx.conditions;
+      const { ok, wide } = ctx.conditions;
 
       if (!ok) {
         gsap.set('.hero__line, .hero__cta, .instrument', { autoAlpha: 1, y: 0, clearProps: 'all' });
@@ -199,15 +205,27 @@ export function hubStory({ onProgress } = {}) {
       // Scroll is the model's time axis.
       const story = document.querySelector('[data-story]');
       if (story && onProgress) {
-        ScrollTrigger.create({
-          trigger: story,
-          start: 'top top',
-          end: '+=' + Math.round(window.innerHeight * 2.4),
-          pin: '[data-story-pin]',
-          scrub: 0.8,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => onProgress(self.progress),
-        });
+        if (wide) {
+          ScrollTrigger.create({
+            trigger: story,
+            start: 'top top',
+            end: '+=' + Math.round(window.innerHeight * 2.4),
+            pin: '[data-story-pin]',
+            scrub: 0.8,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => onProgress(self.progress),
+          });
+        } else {
+          // Narrow screens read the story as an ordinary scroll: the model still
+          // advances, it just does not hold the viewport hostage to do it.
+          ScrollTrigger.create({
+            trigger: story,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.6,
+            onUpdate: (self) => onProgress(self.progress),
+          });
+        }
       }
 
       // Story captions hand off one at a time.

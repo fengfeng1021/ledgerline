@@ -74,10 +74,15 @@ export function demoProfile() {
     p.emergency = 300_000;
     p.property = 9_800_000;
     p.income = 95_000;
-    p.spend = 58_000;
+    p.spend = 48_000;
     p.loans = [{ id: uid(), name: '房貸', principal: 6_800_000, rate: 2.35, term: 22 }];
   } else {
-    p.currency = detectCurrency() === 'TWD' ? 'USD' : detectCurrency();
+    // The example figures are written at a dollar-sized scale, so only
+    // currencies of a similar magnitude are adopted. Showing ¥48,000 for a
+    // holding that means $48,000 would read as a rounding error, not a portfolio.
+    const near = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SGD'];
+    const guess = detectCurrency();
+    p.currency = near.includes(guess) ? guess : 'USD';
     p.holdings = [
       { id: uid(), name: 'VTI',  value: 48_000, target: 45, yield: 1.3, freq: 4, start: 3, cls: 'equity' },
       { id: uid(), name: 'VXUS', value: 31_000, target: 30, yield: 3.0, freq: 4, start: 3, cls: 'equity' },
@@ -88,7 +93,7 @@ export function demoProfile() {
     p.emergency = 10_000;
     p.property = 320_000;
     p.income = 5_400;
-    p.spend = 3_300;
+    p.spend = 2_900;
     p.loans = [{ id: uid(), name: 'Mortgage', principal: 228_000, rate: 5.9, term: 24 }];
   }
   return p;

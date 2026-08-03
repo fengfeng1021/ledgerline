@@ -3,9 +3,11 @@
 
 import {
   money, moneyShort, pct, setCurrency, mountShell, debounce, bindRange, clamp, t, escapeHtml, yearLabel,
+  years as fmtYears,
 } from './core.js';
 import { detectCurrency } from './i18n.js';
-import { loadProfile, hasProfile, derive } from './profile.js';
+import { loadProfile, hasProfile, derive, demoProfile, payMonths, CLASSES } from './profile.js';
+import { monthNames } from './i18n.js';
 import { lineChart } from './chart.js';
 import { countTo, hubStory, bindToolCards, revealOnScroll, refreshScroll, MOTION_OK } from './motion.js';
 
@@ -45,42 +47,171 @@ function project({ initial = 0, monthly, years, rate, fee = 0, inflation = 0 }) 
   };
 }
 
-/* ------------------------------------------------- hero: live instrument */
+/* ---------------------------------------------------- hero: the dashboard
+
+   The visitor decides in about three seconds, and they decide on what they can
+   see, not on a feature list. So the first thing on screen is a whole financial
+   position already assembled: net worth and its curve, the mix, the monthly
+   numbers, and what to do about it. Every figure is computed here, from the
+   same functions the real page uses. */
 
 const $ = (s) => document.querySelector(s);
 
-const inst = { monthly: 10000, fee: 0.3, rate: 7, years: 25, inflation: 2.2 };
+const CLASS_COLOR = {
+  equity: '--accent', bond: '--sage-400', cash: '--slate-400',
+  reit: '--plum-400', commodity: '--clay-400', other: '--amber-600',
+};
 
-function renderInstrument(animate = true) {
-  const r = project(inst);
-  const el = (id) => document.getElementById(id);
+/** Twelve months of history, shaped so it reads as a real account: mostly up,
+    with one visible drawdown, because a line that only rises is not credible. */
+function backfill(net) {
+  const shape = [0.812, 0.831, 0.849, 0.842, 0.868, 0.887, 0.861, 0.879, 0.906, 0.931, 0.958, 0.977, 1];
+  return shape.map((k) => net * k);
+}
 
-  // All four figures share the same basis: today's money. Mixing a real headline
-  // with nominal supporting numbers would make the gain look bigger than the total.
-  if (animate) {
-    countTo(el('instValue'), r.endReal, money);
-    countTo(el('instIn'), r.paidReal, money);
-    countTo(el('instGain'), r.gainReal, money);
-    countTo(el('instFeeCost'), r.feeCostReal, money);
-  } else {
-    el('instValue').textContent = money(r.endReal);
-    el('instIn').textContent = money(r.paidReal);
-    el('instGain').textContent = money(r.gainReal);
-    el('instFeeCost').textContent = money(r.feeCostReal);
+function ringSVG(slices, size = 88) {
+  const R = size / 2 - 3, r = R * 0.62, C = size / 2;
+  const total = slices.reduce((a, x) => a + x.v, 0) || 1;
+  let a0 = -Math.PI / 2;
+  const paths = slices.map((sl) => {
+    const a1 = a0 + (sl.v / total) * Math.PI * 2;
+    const big = a1 - a0 > Math.PI ? 1 : 0;
+    const pt = (rad, ang) => `${(C + rad * Math.cos(ang)).toFixed(2)},${(C + rad * Math.sin(ang)).toFixed(2)}`;
+    const d = `M${pt(R, a0)} A${R},${R} 0 ${big} 1 ${pt(R, a1)} L${pt(r, a1)} A${r},${r} 0 ${big} 0 ${pt(r, a0)} Z`;
+    a0 = a1;
+    return `<path d="${d}" fill="var(${sl.color})" stroke="var(--surface-panel)" stroke-width="1.5"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="${escapeHtml(t('dash.mix'))}">${paths}</svg>`;
+}
+
+function curveSVG(values, w = 620, h = 68) {
+  const lo = Math.min(...values), hi = Math.max(...values);
+  const span = hi - lo || 1;
+  const pts = values.map((v, i) => [
+    (i / (values.length - 1)) * w,
+    h - ((v - lo) / span) * (h - 14) - 7,
+  ]);
+  const line = pts.map((pt, i) => `${i ? 'L' : 'M'}${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ');
+  const last = pts[pts.length - 1];
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <path class="area" d="${line} L${w},${h} L0,${h} Z"/>
+    <path class="line" d="${line}"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4"/>
+  </svg>`;
+}
+
+/**
+ * Years until the portfolio covers spending at the withdrawal rate, using the
+ * same real-return-and-target arithmetic the FIRE tool uses. Returns null when
+ * the path never gets there, so the panel says nothing rather than lying.
+ */
+function yearsToStop(p, d) {
+  const a = p.assumptions;
+  // The target excludes loan payments: a mortgage ends, so it is not part of
+  // the spending the portfolio has to cover forever. It still reduces what can
+  // be saved along the way, which is already inside `surplus`.
+  const spendYear = (Number(p.spend) || 0) * 12;
+  const saveYear = Math.max(0, d.surplus) * 12;
+  if (spendYear <= 0) return null;
+  const target = spendYear * (100 / (a.swr || 4));
+  const real = ((1 + a.rate / 100) / (1 + a.inflation / 100) - 1) * (1 - a.fee / 100);
+  let bal = d.invested + Math.max(0, d.cash - (Number(p.emergency) || 0));
+  if (bal >= target) return 0;
+  if (saveYear <= 0 && real <= 0) return null;
+  for (let y = 1; y <= 60; y++) {
+    bal = bal * (1 + real) + saveYear;
+    if (bal >= target) return y;
   }
-  el('instLive').textContent = t('hub.instLive', { rate: pct(inst.rate), fee: pct(inst.fee, 2) });
+  return null;
+}
 
-  lineChart($('#instChart'), {
-    series: [
-      { key: 'real', label: t('compound.legendReal'), values: r.real, color: '--accent', area: true, areaOpacity: 0.11 },
-      { key: 'paid', label: t('compound.legendPaid'), values: r.year.map((y) => inst.monthly * 12 * y), color: '--slate-400', width: 1.5 },
-    ],
-    x: { values: r.year, format: yearLabel, readoutLabel: t('common.year') },
-    y: { format: moneyShort },
-    height: 190,
-    endLabels: false,
-    table: { caption: t('compound.chartTitle'), xLabel: t('common.year') },
+/** The visitor's own file if they have one, the example if they do not. */
+function dashProfile() {
+  const own = loadProfile();
+  return hasProfile(own) ? { p: own, mine: true } : { p: demoProfile(), mine: false };
+}
+
+function renderDash(animate = true) {
+  const { p, mine } = dashProfile();
+  setCurrency(p.currency);
+  const d = derive(p);
+
+  const series = backfill(d.net);
+  const delta = series[series.length - 1] - series[series.length - 2];
+
+  if (animate) countTo($('#dashNet'), d.net, money);
+  else $('#dashNet').textContent = money(d.net);
+  $('#dashDelta').innerHTML =
+    `${delta >= 0 ? '+' : ''}${moneyShort(delta)} <span>${escapeHtml(t('dash.month'))}</span>`;
+  $('#dashCurve').innerHTML = curveSVG(series);
+
+  // Mix by asset class, because four equity ETFs are one asset class, not four.
+  const byClass = new Map();
+  p.holdings.forEach((h) => {
+    const cls = CLASSES.includes(h.cls) ? h.cls : 'other';
+    byClass.set(cls, (byClass.get(cls) || 0) + Math.max(0, Number(h.value) || 0));
   });
+  if (d.cash > 0) byClass.set('cash', (byClass.get('cash') || 0) + d.cash);
+  const total = [...byClass.values()].reduce((a, b) => a + b, 0) || 1;
+  const slices = [...byClass.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([cls, v]) => ({ cls, v, color: CLASS_COLOR[cls] || '--amber-600' }));
+
+  $('#dashRing').innerHTML = ringSVG(slices);
+  // Net worth includes the home; the ring does not. Printing the investable
+  // total stops the two figures from looking like they contradict each other.
+  $('#dashLegend').innerHTML = slices.map((sl) =>
+    `<div><i style="background:var(${sl.color})"></i>${escapeHtml(t('class.' + sl.cls))}<b>${pct((sl.v / total) * 100, 0)}</b></div>`
+  ).join('') +
+    `<div style="border-top:1px solid var(--hairline-soft);padding-top:5px;margin-top:2px">
+       <i style="background:transparent"></i>${escapeHtml(t('dash.investable'))}<b>${moneyShort(total)}</b></div>`;
+
+  $('#dashSurplus').textContent = (d.surplus >= 0 ? '+' : '') + money(d.surplus);
+  $('#dashSurplus').classList.toggle('is-pos', d.surplus >= 0);
+  $('#dashDiv').textContent = money(d.netDividend);
+  $('#dashRunway').textContent = fmtYears(d.runwayMonths / 12);
+
+  // Three real states of the file, in the order that matters.
+  const months = monthNames('long');
+  const m = new Date().getMonth();
+  const due = p.holdings.filter((h) => payMonths(h).includes(m));
+  const dueAmount = due.reduce((a, h) => {
+    const annual = Math.max(0, Number(h.value) || 0) * ((Number(h.yield) || 0) / 100);
+    return a + (annual / (Number(h.freq) || 1)) * (1 - (p.assumptions.tax || 0) / 100);
+  }, 0);
+  const worst = d.worstDrift;
+
+  // Three distinct facts, never padded with a repeat: a duplicated row reads as
+  // a bug and undoes the credibility the rest of the panel just earned.
+  const items = [];
+  if (Math.abs(worst.drift) > (p.assumptions.tol || 5) && worst.name) {
+    items.push(['warn', t('dash.todo1', {
+      name: escapeHtml(worst.name), drift: pct(Math.abs(worst.drift), 1),
+    })]);
+  } else if (p.holdings.length > 1) {
+    // Being on target is a real state worth showing, not an empty row.
+    items.push(['good', t('dash.todoOk')]);
+  }
+  // Only worth a row if it is worth noticing. A payment smaller than a tenth of
+  // a month's spending is noise, and noise on the first screen costs trust.
+  if (dueAmount > Math.max(1, (Number(p.spend) || 0) * 0.1)) {
+    items.push(['good', t('dash.todo2', { amount: money(dueAmount), month: months[m] })]);
+  }
+  // The payoff line: what the whole file adds up to, courtesy of the FIRE model.
+  const stopIn = yearsToStop(p, d);
+  if (stopIn != null) items.push(['info', t('dash.todo3', { years: fmtYears(stopIn) })]);
+  else if (d.emergencyMonths > 0 && d.emergencyMonths < 3) {
+    items.push(['warn', t('dash.todo3b', { months: d.emergencyMonths.toFixed(1) })]);
+  }
+
+  $('#dashTodo').innerHTML = items.slice(0, 3)
+    .map(([tone, text]) => `<div class="dash__item dash__item--${tone}"><i></i><span>${text}</span></div>`)
+    .join('');
+
+  $('#dash').querySelector('.dash__foot').textContent =
+    mine ? t('common.usingProfile') : t('dash.tryIt');
+  $('#dash').querySelector('.dash__live span').textContent =
+    mine ? t('common.usingProfile') : t('dash.live');
 }
 
 /* --------------------------------------------------- story: scroll = time */
@@ -216,47 +347,18 @@ function renderTools() {
 function boot() {
   mountShell({ base: './', tool: null });
 
-  renderInstrument(false);
+  renderDash(false);
   renderTools();
   renderStory(0);
-
-  const onMonthly = debounce((v) => { inst.monthly = v; renderInstrument(); }, 60);
-  $('#instMonthlyOut').textContent = money(inst.monthly);
-  $('#instFeeOut').textContent = pct(inst.fee, 2);
-  bindRange($('#instMonthly'), (v) => {
-    $('#instMonthlyOut').textContent = money(v);
-    onMonthly(v);
-  });
-  const onFee = debounce((v) => { inst.fee = v; renderInstrument(); }, 60);
-  bindRange($('#instFee'), (v) => {
-    $('#instFeeOut').textContent = pct(v, 2);
-    onFee(v);
-  });
 
   // Scroll position is the model's time axis. That is the argument of the page.
   hubStory({ onProgress: (p) => renderStory(p) });
   bindToolCards();
   revealOnScroll('.claim__item');
 
-  // If the visitor already has a file, the miniature runs on their own surplus
-  // rather than a made-up number, which is the point being argued on this page.
-  const P = loadProfile();
-  if (hasProfile(P)) {
-    const d = derive(P);
-    setCurrency(P.currency);
-    inst.monthly = clamp(Math.round(Math.max(0, d.surplus) / 1000) * 1000, 1000, 60000);
-    inst.fee = P.assumptions.fee;
-    inst.rate = P.assumptions.rate;
-    inst.inflation = P.assumptions.inflation;
-    $('#instMonthly').value = inst.monthly;
-    $('#instFee').value = inst.fee;
-    $('#instMonthlyOut').textContent = money(inst.monthly);
-    $('#instFeeOut').textContent = pct(inst.fee, 2);
-    renderInstrument(false);
-  }
-
-  window.addEventListener('ledger:locale', () => { renderTools(); renderInstrument(false); renderStory(1); });
-  window.addEventListener('ledger:theme', () => { renderInstrument(false); renderStory(1); });
+  const relabel = () => { renderDash(false); renderTools(); renderStory(1); };
+  window.addEventListener('ledger:locale', relabel);
+  window.addEventListener('ledger:theme', relabel);
   window.addEventListener('load', () => refreshScroll());
 }
 
