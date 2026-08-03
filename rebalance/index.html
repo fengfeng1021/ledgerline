@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebalance — what to buy, without selling | Ledgerline</title>
+<meta name="description" content="Every rebalancing tool tells you to sell. This one works out what new money alone can fix, and what selling would actually cost after tax and fees.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="Rebalance — Ledgerline">
+<meta property="og:description" content="Cash-only rebalancing, drift tolerance, and the real cost of a sell order.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/ui.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip-link" href="#stage">Skip to results</a>
+<header class="nav"></header>
+
+<div class="shell">
+<div class="workbench">
+
+  <aside class="rail" aria-label="Portfolio and settings">
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">Holdings</h2>
+        <span class="group__aside" id="targetSum">100%</span>
+      </div>
+      <div class="holding-head" aria-hidden="true">
+        <span></span><span>Name</span><span>Value</span><span>Target</span><span></span>
+      </div>
+      <div class="holdings" id="holdings"></div>
+      <div class="btn-row" style="margin-top:var(--s3)">
+        <button class="btn btn--quiet" id="btnAdd" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3.5v9M3.5 8h9"/></svg>
+          Add holding
+        </button>
+        <button class="btn btn--quiet" id="btnNormalise" type="button">Make targets 100%</button>
+      </div>
+      <div class="presets" style="margin-top:var(--s4)" id="presets" role="group" aria-label="Starting portfolios">
+        <button class="preset" type="button" data-preset="classic" aria-pressed="true">60 / 40</button>
+        <button class="preset" type="button" data-preset="threefund">Three fund</button>
+        <button class="preset" type="button" data-preset="permanent">Permanent</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head"><h2 class="group__title">This rebalance</h2></div>
+
+      <div class="field">
+        <label class="field__label" for="newCash">
+          New money to invest
+          <span class="field__hint">optional</span>
+        </label>
+        <div class="input-wrap" data-num="newCash">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="newCash" type="number" inputmode="numeric" value="0" min="0" step="10000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase new money"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease new money"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field__label" id="modeLabel">Method</span>
+        <div class="seg" id="modeSeg" role="group" aria-labelledby="modeLabel">
+          <button type="button" data-mode="buy" aria-pressed="true">Buy only</button>
+          <button type="button" data-mode="both" aria-pressed="false">Buy and sell</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="tol">
+          Drift you tolerate
+          <span class="field__hint">before acting</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="tol" type="range" min="0" max="15" step="0.5" value="5">
+          <output class="range-val" for="tol" id="tolOut">5.0</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">Friction</h2>
+        <span class="group__aside">why selling hurts</span>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="cost">Trading cost, each way</label>
+        <div class="range-row">
+          <input class="range" id="cost" type="range" min="0" max="1" step="0.005" value="0.1425">
+          <output class="range-val" for="cost" id="costOut">0.143%</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="tax">Tax on realised gains</label>
+        <div class="range-row">
+          <input class="range" id="tax" type="range" min="0" max="45" step="1" value="0">
+          <output class="range-val" for="tax" id="taxOut">0%</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="gain">
+          Unrealised gain in holdings
+          <span class="field__hint">rough average</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="gain" type="range" min="0" max="200" step="5" value="30">
+          <output class="range-val" for="gain" id="gainOut">30%</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head"><h2 class="group__title">Currency</h2></div>
+      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+        <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
+        <button type="button" data-cur="USD" aria-pressed="false">USD</button>
+        <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
+        <button type="button" data-cur="JPY" aria-pressed="false">JPY</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn--ghost" id="btnShare" type="button">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
+        Copy link
+      </button>
+      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+
+    <div class="stage__head">
+      <div>
+        <h1 class="stage__title">Rebalance</h1>
+        <p class="stage__sub">Selling is the expensive way back to target. Start with what new money can fix on its own.</p>
+      </div>
+    </div>
+
+    <div class="metrics" id="metrics">
+      <div class="metric" id="mTotal">
+        <div class="metric__label">Portfolio</div>
+        <div class="metric__value num" id="vTotal">—</div>
+        <div class="metric__foot" id="fTotal">&nbsp;</div>
+      </div>
+      <div class="metric" id="mDrift">
+        <div class="metric__label">Largest drift</div>
+        <div class="metric__value num" id="vDrift">—</div>
+        <div class="metric__foot" id="fDrift">&nbsp;</div>
+      </div>
+      <div class="metric" id="mCash">
+        <div class="metric__label">Cash to fix it without selling</div>
+        <div class="metric__value metric__value--accent num" id="vCash">—</div>
+        <div class="metric__foot" id="fCash">&nbsp;</div>
+      </div>
+      <div class="metric" id="mCost">
+        <div class="metric__label">Cost of this rebalance</div>
+        <div class="metric__value metric__value--neg num" id="vCost">—</div>
+        <div class="metric__foot" id="fCost">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="split split--wide-right" style="margin-top:var(--s5)">
+      <section class="panel" aria-labelledby="mixTitle">
+        <div class="panel__head"><h2 class="panel__title" id="mixTitle">Now against target</h2></div>
+        <div class="panel__body">
+          <div id="donutNow"></div>
+          <div style="margin-top:var(--s5)" id="allocList"></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="driftTitle">
+        <div class="panel__head">
+          <h2 class="panel__title" id="driftTitle">Drift against your tolerance</h2>
+          <span class="group__aside" id="driftLegend">band shows tolerance</span>
+        </div>
+        <div class="panel__body" id="driftList"></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="ordersTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="ordersTitle">Orders</h2>
+        <button class="btn btn--quiet" id="btnCopyOrders" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5V9A1.5 1.5 0 0 0 4 10.5h1.5"/></svg>
+          Copy order list
+        </button>
+      </div>
+      <div class="panel__body panel__body--flush" id="orders"></div>
+    </section>
+
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="cmpTitle">
+      <div class="panel__head"><h2 class="panel__title" id="cmpTitle">Buy only, against buy and sell</h2></div>
+      <div class="panel__body">
+        <p class="fee-claim" id="cmpClaim">—</p>
+        <p class="fee-sub" id="cmpSub">&nbsp;</p>
+        <div class="fee-bars" id="cmpBars"></div>
+      </div>
+    </section>
+
+    <p class="disclosure" style="margin-top:var(--s5)">
+      Tax is estimated by applying your rate to an average unrealised gain across everything sold, which is a
+      simplification: real lots have different cost bases and holding periods, and some accounts are sheltered.
+      Set the tax rate to zero for retirement accounts. Orders are rounded to whole currency units, not to share lots.
+    </p>
+  </main>
+
+</div>
+</div>
+
+<footer class="site-foot"></footer>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

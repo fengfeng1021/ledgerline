@@ -1,0 +1,246 @@
+/* Ledgerline hub — the only Persuade-mode surface in the suite.
+   Everything here inherits tokens.css and ui.css. */
+
+.hub { max-width: var(--max-w); margin-inline: auto; padding-inline: var(--s5); }
+@media (max-width: 720px) { .hub { padding-inline: var(--s4); } }
+
+/* ---------------------------------------------------------------- hero */
+
+/* Budgeted against a 720px viewport minus the 64px nav: the CTA must be
+   visible without scrolling, so the padding is tight and the instrument is
+   sized to fit rather than left to grow. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 1.14fr);
+  gap: var(--s7);
+  align-items: center;
+  padding-top: var(--s6);
+  padding-bottom: var(--s7);
+}
+@media (min-width: 1001px) and (min-height: 860px) {
+  .hero { padding-top: var(--s7); padding-bottom: var(--s9); }
+}
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: 1fr; gap: var(--s6); }
+}
+
+/* No ch-based cap here: ch resolves against this element's 15px UI size, not the
+   55px headline inside it, which silently forced the h1 to three lines.
+   The grid column is the constraint; the sub-paragraph caps its own measure. */
+.hero__copy { max-width: 34rem; }
+.hero h1 {
+  font-size: var(--t-display);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+.hero__line { display: block; }
+.hero__line em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1.1;
+  padding-bottom: 0.06em;
+  display: inline-block;
+}
+.hero__sub {
+  margin-top: var(--s5);
+  color: var(--ink-second);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  max-width: 42ch;
+}
+.hero__cta { margin-top: var(--s6); display: flex; flex-wrap: wrap; gap: var(--s3); }
+
+/* The hero asset is a working tool, not a picture of one. */
+.instrument {
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 var(--highlight);
+}
+.instrument__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s5);
+  border-bottom: 1px solid var(--hairline-soft);
+  background: var(--surface-raised);
+}
+.instrument__label {
+  font-family: var(--font-mono); font-size: var(--t-xs);
+  text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-muted);
+}
+.instrument__live {
+  font-family: var(--font-mono); font-size: var(--t-xs);
+  color: var(--accent);
+}
+.instrument__body { padding: var(--s4) var(--s5); }
+.instrument__figure {
+  display: flex; align-items: baseline; gap: var(--s3);
+  flex-wrap: wrap; margin-bottom: var(--s2);
+}
+.instrument__value {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: clamp(1.75rem, 3.4vw, 2.35rem);
+  letter-spacing: -0.04em; color: var(--ink-strong); line-height: 1;
+}
+.instrument__caption { font-size: var(--t-sm); color: var(--ink-muted); }
+.instrument__chart { margin: var(--s3) 0 var(--s4); }
+.instrument__controls { display: grid; gap: var(--s3); }
+.instrument__foot {
+  display: flex; flex-wrap: wrap; gap: var(--s5);
+  padding: var(--s3) var(--s5);
+  border-top: 1px solid var(--hairline-soft);
+}
+.instrument__stat { display: grid; gap: 3px; }
+.instrument__stat dt {
+  font-size: var(--t-xs); text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--ink-muted);
+}
+.instrument__stat dd {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--t-body); color: var(--ink-body);
+}
+
+/* ---------------------------------------------------------- story arc */
+
+.story { position: relative; }
+.story__pin {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: var(--s8);
+  align-items: center;
+  padding-block: var(--s7);
+}
+@media (max-width: 1000px) {
+  .story__pin { grid-template-columns: 1fr; gap: var(--s6); min-height: 0; padding-block: var(--s6); }
+}
+.story__title {
+  font-size: var(--t-h1);
+  max-width: 18ch;
+  margin-bottom: var(--s5);
+}
+.story__steps { display: grid; gap: var(--s5); }
+.story__step {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--s4);
+  align-items: baseline;
+  padding-top: var(--s4);
+  border-top: 1px solid var(--hairline-soft);
+}
+.story__amount {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 1.15rem; letter-spacing: -0.03em;
+  color: var(--ink-strong); white-space: nowrap;
+}
+.story__amount--neg { color: var(--clay-400); }
+.story__amount--final { color: var(--accent); }
+.story__text { font-size: var(--t-sm); color: var(--ink-second); max-width: 46ch; }
+.story__viz {
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-md);
+  padding: var(--s5);
+  box-shadow: inset 0 1px 0 var(--highlight);
+}
+.story__year {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s3); margin-bottom: var(--s4);
+}
+.story__year b {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: 1.6rem; font-weight: 500; letter-spacing: -0.03em; color: var(--ink-strong);
+}
+.story__year span { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.13em; color: var(--ink-muted); }
+
+/* ---------------------------------------------------------- tool grid */
+
+.tools-head {
+  display: grid; gap: var(--s4);
+  padding-top: var(--s9);
+  padding-bottom: var(--s6);
+  max-width: 52ch;
+}
+.tools-head h2 { font-size: var(--t-h1); }
+.tools-head p { color: var(--ink-second); }
+
+/* Six items, six cells, and the grid divides evenly at every breakpoint:
+   3x2 wide, 2x3 medium, 1x6 narrow. No empty cell at any size. */
+.tools {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4);
+  padding-bottom: var(--s9);
+}
+@media (max-width: 1020px) { .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 660px) { .tools { grid-template-columns: 1fr; } }
+
+.tool-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s4);
+  padding: var(--s5);
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--highlight);
+  transition: background 0.28s var(--ease-out);
+  will-change: transform;
+}
+.tool-card:hover { background: var(--surface-raised); }
+.tool-card__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
+.tool-card__name {
+  font-family: var(--font-display); font-size: 1.35rem;
+  font-weight: 500; letter-spacing: -0.03em; color: var(--ink-strong);
+}
+.tool-card__go { color: var(--accent); display: inline-flex; }
+.tool-card__go svg { width: 17px; height: 17px; }
+.tool-card__q { font-size: var(--t-body); color: var(--ink-body); max-width: 40ch; }
+.tool-card__why { font-size: var(--t-sm); color: var(--ink-muted); max-width: 46ch; margin-top: 6px; }
+.tool-card__spark { height: 54px; }
+.tool-card__spark svg { width: 100%; height: 54px; overflow: visible; }
+.tool-card__spark path { fill: none; stroke: var(--accent); stroke-width: 1.75; stroke-linecap: round; }
+.tool-card__spark .under { fill: var(--accent); opacity: 0.09; stroke: none; }
+.tool-card__meta {
+  display: flex; flex-wrap: wrap; gap: var(--s2);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--hairline-soft);
+}
+
+/* ------------------------------------------------------------- closing */
+
+.claim {
+  padding: var(--s9) 0;
+  border-top: 1px solid var(--hairline-soft);
+}
+.claim__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s7) var(--s6);
+}
+.claim h2 { font-size: var(--t-h2); max-width: 20ch; }
+.claim__item h3 {
+  font-family: var(--font-ui); font-size: var(--t-body); font-weight: 600;
+  color: var(--ink-strong); letter-spacing: 0; margin-bottom: var(--s2);
+}
+.claim__item p { font-size: var(--t-sm); color: var(--ink-second); max-width: 42ch; }
+.claim__item code {
+  font-family: var(--font-mono); font-size: 0.86em;
+  background: var(--surface-well); padding: 1px 5px; border-radius: 3px;
+  color: var(--ink-body);
+}
+
+.cta-end {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--s5);
+  padding: var(--s7) var(--s7);
+  margin-bottom: var(--s9);
+  background: var(--surface-panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 var(--highlight);
+}
+.cta-end h2 { font-size: var(--t-h2); max-width: 22ch; }
+.cta-end p { color: var(--ink-second); font-size: var(--t-sm); margin-top: var(--s2); max-width: 44ch; }
+@media (max-width: 720px) { .cta-end { padding: var(--s5); } }

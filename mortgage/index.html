@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mortgage — what overpaying actually saves | Ledgerline</title>
+<meta name="description" content="Interest curve, payoff date, and the break-even against investing the same money instead. The comparison your bank does not show you.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="Mortgage — Ledgerline">
+<meta property="og:description" content="Overpayment savings against investing the same money, side by side.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/ui.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip-link" href="#stage">Skip to results</a>
+<header class="nav"></header>
+
+<div class="shell">
+<div class="workbench">
+
+  <aside class="rail" aria-label="Loan terms">
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">The loan</h2>
+        <span class="group__aside" id="curName">TWD</span>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="principal">Amount borrowed</label>
+        <div class="input-wrap" data-num="principal">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="principal" type="number" inputmode="numeric" value="12000000" min="0" step="500000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase amount"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease amount"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="rate">Interest rate</label>
+        <div class="range-row">
+          <input class="range" id="rate" type="range" min="0.5" max="10" step="0.01" value="2.35">
+          <output class="range-val" for="rate" id="rateOut">2.35%</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="term">Term</label>
+        <div class="range-row">
+          <input class="range" id="term" type="range" min="5" max="40" step="1" value="30">
+          <output class="range-val" for="term" id="termOut">30</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="grace">
+          Interest-only period
+          <span class="field__hint">grace years</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="grace" type="range" min="0" max="10" step="1" value="0">
+          <output class="range-val" for="grace" id="graceOut">0</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field__label" id="methodLabel">Repayment shape</span>
+        <div class="seg" id="methodSeg" role="group" aria-labelledby="methodLabel">
+          <button type="button" data-method="annuity" aria-pressed="true">Level payment</button>
+          <button type="button" data-method="equal" aria-pressed="false">Level principal</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">Paying it down faster</h2>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="extra">Extra, every month</label>
+        <div class="input-wrap" data-num="extra">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="extra" type="number" inputmode="numeric" value="5000" min="0" step="1000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase extra payment"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease extra payment"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="lump">One-off lump sum</label>
+        <div class="input-wrap" data-num="lump">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="lump" type="number" inputmode="numeric" value="0" min="0" step="100000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase lump sum"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease lump sum"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="lumpYear">Paid in year</label>
+        <div class="range-row">
+          <input class="range" id="lumpYear" type="range" min="1" max="30" step="1" value="3">
+          <output class="range-val" for="lumpYear" id="lumpYearOut">3</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">Or invest it instead</h2>
+        <span class="group__aside">the real question</span>
+      </div>
+      <div class="field">
+        <label class="field__label" for="alt">
+          Return if invested
+          <span class="field__hint" id="altNote">after tax</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="alt" type="range" min="0" max="12" step="0.1" value="5">
+          <output class="range-val" for="alt" id="altOut">5.0%</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head"><h2 class="group__title">Currency</h2></div>
+      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+        <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
+        <button type="button" data-cur="USD" aria-pressed="false">USD</button>
+        <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
+        <button type="button" data-cur="GBP" aria-pressed="false">GBP</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn--ghost" id="btnShare" type="button">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
+        Copy link
+      </button>
+      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+
+    <div class="stage__head">
+      <div>
+        <h1 class="stage__title">Mortgage</h1>
+        <p class="stage__sub">The payment is the easy number. What matters is the interest curve and whether overpaying beats investing.</p>
+      </div>
+    </div>
+
+    <div class="metrics" id="metrics">
+      <div class="metric" id="mPay">
+        <div class="metric__label">Monthly payment</div>
+        <div class="metric__value num" id="vPay">—</div>
+        <div class="metric__foot" id="fPay">&nbsp;</div>
+      </div>
+      <div class="metric" id="mInterest">
+        <div class="metric__label">Interest over the life</div>
+        <div class="metric__value metric__value--neg num" id="vInterest">—</div>
+        <div class="metric__foot" id="fInterest">&nbsp;</div>
+      </div>
+      <div class="metric" id="mSaved">
+        <div class="metric__label">Overpaying saves</div>
+        <div class="metric__value metric__value--pos num" id="vSaved">—</div>
+        <div class="metric__foot" id="fSaved">&nbsp;</div>
+      </div>
+      <div class="metric" id="mFree">
+        <div class="metric__label">Debt free in</div>
+        <div class="metric__value metric__value--accent num" id="vFree">—</div>
+        <div class="metric__foot" id="fFree">&nbsp;</div>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top:var(--s5)" aria-labelledby="balTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="balTitle">What you still owe</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="panel__body">
+        <div class="chart" id="chart"></div>
+      </div>
+      <div class="readout" id="readout"></div>
+    </section>
+
+    <div class="split split--even" data-reveal>
+      <section class="panel" aria-labelledby="beTitle">
+        <div class="panel__head"><h2 class="panel__title" id="beTitle">Overpay, or invest the same money</h2></div>
+        <div class="panel__body">
+          <p class="fee-claim" id="beClaim">—</p>
+          <p class="fee-sub" id="beSub">&nbsp;</p>
+          <div class="fee-bars" id="beBars"></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="mixTitle">
+        <div class="panel__head">
+          <h2 class="panel__title" id="mixTitle">Where each payment goes</h2>
+          <span class="group__aside">interest against principal</span>
+        </div>
+        <div class="panel__body panel__body--flush">
+          <div class="ladder" id="ladder"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="tblTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="tblTitle">Amortisation</h2>
+        <button class="btn btn--quiet" id="btnCsv" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>
+          Download CSV
+        </button>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <div class="table-scroll" style="max-height:420px">
+          <table class="table" id="tbl">
+            <thead><tr>
+              <th scope="col">Year</th><th scope="col">Paid</th><th scope="col">To interest</th>
+              <th scope="col">To principal</th><th scope="col">Still owed</th><th scope="col">Owed without extra</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <p class="disclosure" style="margin-top:var(--s5)">
+      A fixed rate for the whole term is assumed, which is optimistic for floating-rate loans and wrong after any
+      reset. The investing comparison ignores volatility: a 5% return earned smoothly is not the same risk as 5%
+      earned through a crash, and paying down debt is the only one of the two with a guaranteed outcome.
+    </p>
+  </main>
+
+</div>
+</div>
+
+<footer class="site-foot"></footer>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

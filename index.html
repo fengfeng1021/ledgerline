@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledgerline — financial models that do not flatter you</title>
+<meta name="description" content="Six investing calculators that include the fees, the inflation and the bad years. No account, no upload, no tracking. Everything runs in your browser.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="Ledgerline">
+<meta property="og:description" content="Six investing calculators that include the fees, the inflation and the bad years. Everything runs in your browser.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/ui.css">
+<link rel="stylesheet" href="assets/css/hub.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip-link" href="#tools">Skip to the tools</a>
+<header class="nav"></header>
+
+<main>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hub hero">
+    <div class="hero__copy">
+      <h1>
+        <span class="hero__line pre">Models that don't</span>
+        <span class="hero__line pre"><em>flatter</em> you.</span>
+      </h1>
+      <p class="hero__sub pre">
+        Six investing calculators that include the fees, the inflation and the bad years.
+        Nothing you type leaves this browser.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--primary btn--lg" href="compound/">Open Compound</a>
+        <a class="btn btn--ghost btn--lg" href="#tools">All six tools</a>
+      </div>
+    </div>
+
+    <!-- A working instrument, not a screenshot of one. -->
+    <div class="instrument pre" id="instrument">
+      <div class="instrument__bar">
+        <span class="instrument__label">Compound, in miniature</span>
+        <span class="instrument__live" id="instLive">7% return · 0.30% fee</span>
+      </div>
+      <div class="instrument__body">
+        <div class="instrument__figure">
+          <span class="instrument__value num" id="instValue">—</span>
+          <span class="instrument__caption" id="instCaption">after 25 years, in today's money</span>
+        </div>
+        <div class="instrument__chart chart" id="instChart"></div>
+        <div class="instrument__controls">
+          <div class="field" style="margin:0">
+            <label class="field__label" for="instMonthly">
+              Monthly contribution
+              <span class="field__hint num" id="instMonthlyOut">NT$10,000</span>
+            </label>
+            <input class="range" id="instMonthly" type="range" min="1000" max="60000" step="1000" value="10000">
+          </div>
+          <div class="field" style="margin:0">
+            <label class="field__label" for="instFee">
+              Annual fee
+              <span class="field__hint num" id="instFeeOut">0.30%</span>
+            </label>
+            <input class="range" id="instFee" type="range" min="0" max="2.5" step="0.05" value="0.3">
+          </div>
+        </div>
+      </div>
+      <dl class="instrument__foot">
+        <div class="instrument__stat"><dt>You put in</dt><dd class="num" id="instIn">—</dd></div>
+        <div class="instrument__stat"><dt>Market added</dt><dd class="num" id="instGain">—</dd></div>
+        <div class="instrument__stat"><dt>Fees took</dt><dd class="num" id="instFeeCost">—</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ===================== STORY ===================== -->
+  <section class="story" data-story aria-labelledby="storyTitle">
+    <div class="hub story__pin" data-story-pin>
+      <div>
+        <h2 class="story__title" id="storyTitle">Three things eat the number you were promised.</h2>
+        <div class="story__steps">
+          <div class="story__step" data-story-step>
+            <span class="story__amount num" id="stepGross">—</span>
+            <p class="story__text">What a 7% return does to NT$10,000 a month over 30 years. This is the figure most calculators stop at.</p>
+          </div>
+          <div class="story__step" data-story-step>
+            <span class="story__amount story__amount--neg num" id="stepFee">—</span>
+            <p class="story__text">Gone to a 1.5% annual fee. Not deducted from your contributions, deducted from the compounding itself, every year.</p>
+          </div>
+          <div class="story__step" data-story-step>
+            <span class="story__amount story__amount--neg num" id="stepInf">—</span>
+            <p class="story__text">Gone to 2.2% inflation. The balance still says one number; a week of groceries costs another.</p>
+          </div>
+          <div class="story__step" data-story-step>
+            <span class="story__amount story__amount--final num" id="stepReal">—</span>
+            <p class="story__text">What is actually left to spend. Every tool here starts from this number instead of ending at it.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="story__viz">
+        <div class="story__year">
+          <b class="num" id="storyYear">Year 0</b>
+          <span id="storyPhase">contributions only</span>
+        </div>
+        <div class="chart" id="storyChart"></div>
+        <div class="legend" style="margin-top:var(--s4)">
+          <span class="legend__item"><span class="legend__swatch" style="background:var(--slate-400)"></span>Before fees</span>
+          <span class="legend__item"><span class="legend__swatch" style="background:var(--accent)"></span>After fees and inflation</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TOOLS ===================== -->
+  <div class="hub" id="tools">
+    <div class="tools-head">
+      <h2>Six questions, answered properly.</h2>
+      <p>Each one replaces a spreadsheet you would otherwise build badly, and each one shows the assumption that decides the answer.</p>
+    </div>
+    <div class="tools" id="toolGrid"></div>
+  </div>
+
+  <!-- ===================== CLAIM ===================== -->
+  <section class="hub claim" aria-labelledby="claimTitle">
+    <div class="claim__grid">
+      <h2 id="claimTitle">Nothing you type leaves the browser. That is checkable.</h2>
+      <div class="claim__item">
+        <h3>No requests after load</h3>
+        <p>Open your developer tools, watch the network tab, and move every slider on any tool. Nothing goes out. The only requests are the fonts and the animation library, both from a public CDN, both at first paint.</p>
+      </div>
+      <div class="claim__item">
+        <h3>Your numbers live in two places</h3>
+        <p>Your own <code>localStorage</code>, so a return visit picks up where you left off, and the URL after the <code>#</code>, so a link carries the whole scenario to someone else without a server ever seeing it.</p>
+      </div>
+      <div class="claim__item">
+        <h3>Read the model</h3>
+        <p>Every projection is a few dozen lines of plain JavaScript with the formula written out. If a number looks wrong, the arithmetic is right there to check rather than behind an API.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="hub">
+    <div class="cta-end">
+      <div>
+        <h2>Start with the one that annoyed you most recently.</h2>
+        <p>Press <span class="palette__key">⌘</span> <span class="palette__key">K</span> anywhere in the suite to jump between tools.</p>
+      </div>
+      <a class="btn btn--primary btn--lg" href="compound/">Open Compound</a>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-foot"></footer>
+<script type="module" src="assets/js/hub.js"></script>
+</body>
+</html>

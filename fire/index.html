@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIRE — when can you stop, and does it hold | Ledgerline</title>
+<meta name="description" content="Accumulation and withdrawal in one model, with a volatility simulation so you see the odds instead of a single flattering number.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="FIRE — Ledgerline">
+<meta property="og:description" content="A single-point retirement number hides sequence-of-returns risk. This one runs the simulation.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/ui.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip-link" href="#stage">Skip to results</a>
+<header class="nav"></header>
+
+<div class="shell">
+<div class="workbench">
+
+  <aside class="rail" aria-label="Assumptions">
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">Where you are</h2>
+        <span class="group__aside" id="curName">TWD</span>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="nest">Invested today</label>
+        <div class="input-wrap" data-num="nest">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="nest" type="number" inputmode="numeric" value="2000000" min="0" step="100000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase invested amount"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease invested amount"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="income">Take-home income, yearly</label>
+        <div class="input-wrap" data-num="income">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="income" type="number" inputmode="numeric" value="1200000" min="0" step="100000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase income"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease income"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="spend">
+          Spending, yearly
+          <span class="field__hint" id="savingRate">saving 40%</span>
+        </label>
+        <div class="input-wrap" data-num="spend">
+          <span class="input-wrap__prefix" data-cur-symbol>NT$</span>
+          <input class="input" id="spend" type="number" inputmode="numeric" value="720000" min="0" step="50000">
+          <span class="stepper">
+            <button type="button" data-dir="1" aria-label="Increase spending"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6.5 5 3.5l3 3"/></svg></button>
+            <button type="button" data-dir="-1" aria-label="Decrease spending"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3.5 5 6.5l3-3"/></svg></button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head"><h2 class="group__title">Market</h2></div>
+
+      <div class="field">
+        <label class="field__label" for="rate">Real return, after inflation</label>
+        <div class="range-row">
+          <input class="range" id="rate" type="range" min="0" max="10" step="0.1" value="5">
+          <output class="range-val" for="rate" id="rateOut">5.0%</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="vol">
+          Volatility
+          <span class="field__hint" id="volNote">balanced</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="vol" type="range" min="0" max="25" step="0.5" value="14">
+          <output class="range-val" for="vol" id="volOut">14%</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="fee">Annual fee</label>
+        <div class="range-row">
+          <input class="range" id="fee" type="range" min="0" max="2" step="0.01" value="0.25">
+          <output class="range-val" for="fee" id="feeOut">0.25%</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head">
+        <h2 class="group__title">After you stop</h2>
+        <span class="group__aside">the part that decides it</span>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="swr">
+          Withdrawal rate
+          <span class="field__hint" id="swrNote">4% rule</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="swr" type="range" min="2" max="7" step="0.1" value="4">
+          <output class="range-val" for="swr" id="swrOut">4.0%</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="horizon">Years the money must last</label>
+        <div class="range-row">
+          <input class="range" id="horizon" type="range" min="10" max="60" step="1" value="35">
+          <output class="range-val" for="horizon" id="horizonOut">35</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="cutback">
+          Cut spending in bad years
+          <span class="field__hint">flexibility</span>
+        </label>
+        <div class="range-row">
+          <input class="range" id="cutback" type="range" min="0" max="30" step="1" value="10">
+          <output class="range-val" for="cutback" id="cutbackOut">10%</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group__head"><h2 class="group__title">Currency</h2></div>
+      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+        <button type="button" data-cur="TWD" aria-pressed="true">TWD</button>
+        <button type="button" data-cur="USD" aria-pressed="false">USD</button>
+        <button type="button" data-cur="EUR" aria-pressed="false">EUR</button>
+        <button type="button" data-cur="JPY" aria-pressed="false">JPY</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn--ghost" id="btnShare" type="button">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 9.5 6.5M7 4.2 8.6 2.6a2.6 2.6 0 1 1 3.7 3.7L10.7 8M5.3 8 3.7 9.6a2.6 2.6 0 1 0 3.7 3.7L9 11.7"/></svg>
+        Copy link
+      </button>
+      <button class="btn btn--quiet" id="btnReset" type="button">Reset</button>
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+
+    <div class="stage__head">
+      <div>
+        <h1 class="stage__title">FIRE</h1>
+        <p class="stage__sub">Two questions, not one. How long until you could stop, and whether the money survives once you do.</p>
+      </div>
+    </div>
+
+    <div class="metrics" id="metrics">
+      <div class="metric" id="mYears">
+        <div class="metric__label">Work remaining</div>
+        <div class="metric__value metric__value--accent num" id="vYears">—</div>
+        <div class="metric__foot" id="fYears">&nbsp;</div>
+      </div>
+      <div class="metric" id="mTarget">
+        <div class="metric__label">Number you need</div>
+        <div class="metric__value num" id="vTarget">—</div>
+        <div class="metric__foot" id="fTarget">&nbsp;</div>
+      </div>
+      <div class="metric" id="mOdds">
+        <div class="metric__label">Survives the horizon</div>
+        <div class="metric__value num" id="vOdds">—</div>
+        <div class="metric__foot" id="fOdds">&nbsp;</div>
+      </div>
+      <div class="metric" id="mMonthly">
+        <div class="metric__label">Monthly income it buys</div>
+        <div class="metric__value num" id="vMonthly">—</div>
+        <div class="metric__foot" id="fMonthly">&nbsp;</div>
+      </div>
+    </div>
+
+    <section class="panel" style="margin-top:var(--s5)" aria-labelledby="pathTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="pathTitle">Accumulate, then withdraw</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="panel__body">
+        <div class="chart" id="chart"></div>
+      </div>
+      <div class="readout" id="readout"></div>
+    </section>
+
+    <div class="split split--even" data-reveal>
+      <section class="panel" aria-labelledby="oddsTitle">
+        <div class="panel__head">
+          <h2 class="panel__title" id="oddsTitle">Withdrawal rate against the odds</h2>
+          <span class="group__aside" id="simCount">600 runs each</span>
+        </div>
+        <div class="panel__body">
+          <div class="chart" id="swrChart"></div>
+          <p class="fee-sub" id="swrClaim">&nbsp;</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="riskTitle">
+        <div class="panel__head"><h2 class="panel__title" id="riskTitle">Where the risk actually is</h2></div>
+        <div class="panel__body">
+          <div class="dial-row" id="dials"></div>
+          <div class="note note--accent" style="margin-top:var(--s5)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 5v4M8 11h.01"/><circle cx="8" cy="8" r="6.4"/></svg>
+            <p id="riskNote">&nbsp;</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:var(--s5)" data-reveal aria-labelledby="tblTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="tblTitle">Path, year by year</h2>
+        <button class="btn btn--quiet" id="btnCsv" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>
+          Download CSV
+        </button>
+      </div>
+      <div class="panel__body panel__body--flush">
+        <div class="table-scroll" style="max-height:420px">
+          <table class="table" id="tbl">
+            <thead><tr>
+              <th scope="col">Year</th><th scope="col">Phase</th><th scope="col">Median</th>
+              <th scope="col">Unlucky (10th)</th><th scope="col">Lucky (90th)</th><th scope="col">Spending</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <p class="disclosure" style="margin-top:var(--s5)">
+      Returns are drawn from a normal distribution each year, which understates both crashes and recoveries.
+      Real sequences are lumpier than this, so treat the survival number as a comparison between choices rather
+      than a probability about your life. All figures are in today's money because the return input is already real.
+    </p>
+  </main>
+
+</div>
+</div>
+
+<footer class="site-foot"></footer>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
