@@ -2,3 +2,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Scratch files from build or debugging sessions. Named so they are obvious on
+# sight and never reach the repository or the deployed site.
+_*.py
+_*.txt
+_*.json
+_*.png
+*.tmp
