@@ -1010,6 +1010,57 @@
   gap: var(--s4);
 }
 
+/* Paste-to-update preview: a diff the visitor confirms, never an auto-write. */
+.paste-diff {
+  margin-top: var(--s4);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.paste-diff__head {
+  padding: 9px var(--s4);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--hairline-soft);
+  font-size: var(--t-sm); color: var(--ink-second);
+}
+.paste-diff__head b { color: var(--ink-strong); font-family: var(--font-mono); font-weight: 500; }
+.paste-row {
+  display: grid; grid-template-columns: 1fr auto auto auto; gap: var(--s4);
+  align-items: baseline;
+  padding: 8px var(--s4);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline-soft) 55%, transparent);
+  font-size: var(--t-sm);
+}
+.paste-row:last-child { border-bottom: 0; }
+.paste-row__name { font-weight: 500; color: var(--ink-body); }
+.paste-row__v {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  color: var(--ink-muted); min-width: 8ch; text-align: right;
+}
+.paste-row__v--to { color: var(--ink-strong); }
+@media (max-width: 620px) {
+  .paste-row { grid-template-columns: 1fr auto; gap: var(--s2) var(--s3); }
+  .paste-row__name { grid-column: 1 / -1; }
+}
+
+.why { border-top: 1px solid var(--hairline-soft); padding-top: var(--s4); }
+.why summary {
+  cursor: pointer; list-style: none;
+  font-size: var(--t-sm); font-weight: 500; color: var(--ink-second);
+  display: flex; align-items: center; gap: 7px;
+}
+.why summary::-webkit-details-marker { display: none; }
+.why summary::before {
+  content: "+"; font-family: var(--font-mono); color: var(--ink-muted);
+  width: 12px; display: inline-block;
+}
+.why[open] summary::before { content: "-"; }
+.why summary:hover { color: var(--ink-strong); }
+.why p {
+  margin-top: var(--s3); padding-left: 19px;
+  font-size: var(--t-sm); color: var(--ink-muted); max-width: 72ch; line-height: 1.6;
+}
+
 /* The shared-file card at the top of every tool rail. */
 .profile-cta {
   display: grid; gap: 6px;

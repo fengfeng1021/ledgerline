@@ -106,6 +106,29 @@
       </div>
     </section>
 
+
+    <!-- ============ paste to update ============ -->
+    <section class="panel" style="margin-top:var(--s5)" aria-labelledby="pasteTitle">
+      <div class="panel__head">
+        <h2 class="panel__title" id="pasteTitle" data-i18n="paste.title">從券商貼上，一次更新</h2>
+        <span class="group__aside" id="lastUpdated"></span>
+      </div>
+      <div class="panel__body">
+        <p class="field__hint" style="margin-bottom:var(--s4);max-width:70ch" data-i18n="paste.sub">打開券商的庫存頁面，全選複製，貼進下面。系統會比對代號並算出變化，你確認後才會寫入。每個月做一次，大約十秒。</p>
+        <textarea class="textarea" id="pasteBox" rows="4" spellcheck="false"
+                  data-i18n-attr="placeholder:paste.placeholder,aria-label:paste.title"></textarea>
+        <div id="pastePreview"></div>
+        <div class="btn-row" style="margin-top:var(--s4)" id="pasteActions" hidden>
+          <button class="btn btn--primary" id="btnPasteApply" type="button"></button>
+          <button class="btn btn--quiet" id="btnPasteCancel" type="button" data-i18n="paste.cancel">取消</button>
+        </div>
+        <details class="why" style="margin-top:var(--s5)">
+          <summary data-i18n="why.title">為什麼不自動抓股價</summary>
+          <p data-i18n="why.body"></p>
+        </details>
+      </div>
+    </section>
+
     <!-- ============ cash + loans ============ -->
     <div class="split split--even">
       <section class="panel" aria-labelledby="cashTitle">

@@ -12,6 +12,7 @@ import {
   derive, actions, addSnapshot, addJournal, exportProfile, importProfile,
   uid, CLASSES, CLASS_DEFAULTS, monthlyPayment,
 } from '../assets/js/profile.js';
+import { planUpdate } from '../assets/js/paste.js';
 
 const PALETTE = ['--accent', '--sage-400', '--slate-400', '--plum-400', '--clay-400', '--amber-600'];
 const $ = (s) => document.querySelector(s);
@@ -79,6 +80,9 @@ function renderDerived() {
 
   $('#targetSum').textContent = pct(d.targetSum, 0);
   $('#targetSum').style.color = Math.abs(d.targetSum - 100) > 0.5 ? 'var(--clay-400)' : '';
+
+  const stamp = $('#lastUpdated');
+  if (stamp) stamp.textContent = P.updatedAt ? t('quick.title', { ago: formatAgo(P.updatedAt) }) : '';
 }
 
 /** The list that answers "why come back". Everything here is a real state. */
@@ -261,6 +265,72 @@ function paintCurrencySeg() {
     b.setAttribute('aria-pressed', String(b.dataset.cur === P.currency)));
 }
 
+/* ------------------------------------------------------ paste to update */
+
+let pendingPlan = null;
+
+/**
+ * Show the diff a paste would produce. Nothing is written until the visitor
+ * confirms: an update that silently rewrote a portfolio would be unusable.
+ */
+function previewPaste() {
+  const text = $('#pasteBox').value;
+  const box = $('#pastePreview');
+  const actionsRow = $('#pasteActions');
+
+  if (!text.trim()) {
+    box.innerHTML = ''; actionsRow.hidden = true; pendingPlan = null;
+    return;
+  }
+
+  const result = planUpdate(P.holdings, text);
+  pendingPlan = result.plan.length ? result : null;
+
+  if (!result.plan.length) {
+    box.innerHTML =
+      `<div class="note note--warn" style="margin-top:var(--s4)">
+         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 5v4M8 11h.01"/><circle cx="8" cy="8" r="6.4"/></svg>
+         <span><b>${escapeHtml(t('paste.none'))}</b><br>${escapeHtml(t('paste.noneSub'))}</span>
+       </div>`;
+    actionsRow.hidden = true;
+    return;
+  }
+
+  box.innerHTML =
+    `<div class="paste-diff">
+       <div class="paste-diff__head">${t('paste.found', {
+         n: `<b>${result.plan.length}</b>`,
+         from: `<b>${money(result.fromTotal)}</b>`,
+         to: `<b>${money(result.toTotal)}</b>`,
+       })}</div>
+       ${result.plan.map((r) => `
+         <div class="paste-row">
+           <span class="paste-row__name">${escapeHtml(r.name)}</span>
+           <span class="paste-row__v">${money(r.from)}</span>
+           <span class="paste-row__v paste-row__v--to">${money(r.to)}</span>
+           <span class="delta ${r.delta > 0 ? 'delta--pos' : r.delta < 0 ? 'delta--neg' : ''}">${
+             r.delta === 0 ? escapeHtml(t('paste.unchanged'))
+               : (r.delta > 0 ? '+' : '') + moneyShort(r.delta)}</span>
+         </div>`).join('')}
+     </div>`;
+
+  $('#btnPasteApply').textContent = t('paste.apply', { n: result.plan.length });
+  actionsRow.hidden = false;
+}
+
+function applyPaste() {
+  if (!pendingPlan) return;
+  pendingPlan.plan.forEach((r) => { P.holdings[r.index].value = r.to; });
+  // An update is exactly the moment a snapshot is worth taking, so take it.
+  P = addSnapshot(P, '');
+  $('#pasteBox').value = '';
+  previewPaste();
+  renderHoldings();
+  renderDerived();
+  toast(t('paste.applied', { n: pendingPlan.plan.length }));
+  pendingPlan = null;
+}
+
 /* -------------------------------------------------------------------- wire */
 
 function boot() {
@@ -388,6 +458,14 @@ function boot() {
     if (!del) return;
     P.journal.splice(Number(del.dataset.delentry), 1);
     saveProfile(P); renderJournal();
+  });
+
+  // Paste to update: preview on every keystroke, write only on confirm.
+  $('#pasteBox').addEventListener('input', debounce(previewPaste, 220));
+  $('#pasteBox').addEventListener('paste', () => setTimeout(previewPaste, 40));
+  $('#btnPasteApply').addEventListener('click', applyPaste);
+  $('#btnPasteCancel').addEventListener('click', () => {
+    $('#pasteBox').value = ''; previewPaste();
   });
 
   // Data
